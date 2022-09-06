@@ -1,0 +1,4 @@
+git+https://github.com/Rapptz/discord.py@rewrite
+async-timeout==4.0.2
+asyncio==3.4.3
+discord.py==2.0.1
