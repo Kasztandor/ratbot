@@ -21,7 +21,7 @@ client = MyClient(intents=intents)
 
 @client.event
 async def on_message(message):
-    if message.author.id == 159985870458322944: # Kasztandor: 386237687008591895 MEE6: 159985870458322944
+    if len(message.mentions) > 0 and message.author.id == 159985870458322944: # Kasztandor: 386237687008591895 MEE6: 159985870458322944
         guild = message.guild
         msg = message.content
         userID = msg[(msg.find("<@")+2):msg.find(">")]
@@ -40,6 +40,9 @@ async def on_message(message):
             await theUser.remove_roles(roleToRevoke)
         if level/10 == floor(level/10):
             await message.channel.send("Gratulacje <@"+str(userID)+"> Właśnie osiągnąłeś rangę <@&"+str(roleToGiveID)+">")
+    elif len(message.mentions) > 0 and message.mentions[0] == client.user and message.content.find("przedstaw się") != -1:
+        await message.channel.send("Siema! Jestem sobie botem napisanym przez Kasztandora i tak sobie tutaj działam i robię co do mnie należy. Pozdrawiam wszystkich i życzę udanego dnia!")
+
 
 
 client.run('MTAxNjQxNDc0NjQ2MDgyMzU2Mg.GiJyQJ.FKMwOLjSNJGfDKTwdj-zWgotmjRJnmO_FoAhok')
