@@ -1,3 +1,4 @@
 async-timeout==4.0.2
 asyncio==3.4.3
-discord.py==2.0.1
+discord.py==2.0.1pytz==2022.2.1
+pytz==2022.2.1

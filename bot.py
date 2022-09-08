@@ -1,16 +1,19 @@
-# to testbot
-#roles = [1016433847296086037,1016433864303980545,1016433874043162655,1016433882507255829,1016433889864069211,1016433896654639114,1016433907220107274,1016433916862799893,1016433924211232899,1016433930418798655,1016433939096817836]
-#mee6 = 386237687008591895
-#token = "NzIyNzQ0NzI1NzU2NzA2ODU3.GXlyrf.yGGwtT5EvsvbmrSgUhDf0VPcUUv5rYsQRSmzpE"
-
 # to ratcraft
+token = "MTAxNjQxNDc0NjQ2MDgyMzU2Mg.GiJyQJ.FKMwOLjSNJGfDKTwdj-zWgotmjRJnmO_FoAhok"
 roles = [698047161245630545,698047575013457931,703327203068346388,723329755465777193,732345037798506497,736570299537031280,736570295954964542,736570323234848930,736570319921348619,736571825043013672,736571823600435280]
 mee6 = 159985870458322944
-token = "MTAxNjQxNDc0NjQ2MDgyMzU2Mg.GiJyQJ.FKMwOLjSNJGfDKTwdj-zWgotmjRJnmO_FoAhok"
+
+# to testbot
+#token = "NzIyNzQ0NzI1NzU2NzA2ODU3.GXlyrf.yGGwtT5EvsvbmrSgUhDf0VPcUUv5rYsQRSmzpE"
+#roles = [1016433847296086037,1016433864303980545,1016433874043162655,1016433882507255829,1016433889864069211,1016433896654639114,1016433907220107274,1016433916862799893,1016433924211232899,1016433930418798655,1016433939096817836]
+#mee6 = 386237687008591895
+counting = 1017465965883170917
 
 import discord
 from discord.utils import get
 from math import floor
+from datetime import datetime
+import pytz
 
 class MyClient(discord.Client):
     async def on_ready(self):
@@ -26,9 +29,29 @@ client = MyClient(intents=intents)
 
 @client.event
 async def on_message(message):
-    if len(message.mentions) > 0 and message.author.id == mee6:
-        guild = message.guild
-        msg = message.content
+    guild = message.guild
+    msg = message.content
+    sender = message.author
+
+    IST = pytz.timezone('Europe/Warsaw')
+    hour = datetime.now(IST).hour
+    minute = datetime.now(IST).minute
+    second = datetime.now(IST).second
+    timeNow = str(hour)+":"+str(minute)+":"+str(second)
+    bannedWords = ["kurwa","kurwi","pierdole","pierdolę","jebać","jebac","pierdolić","pierdolic","fuck","shit","chuj","huj"]
+    remove = False
+    if hour < 20 and hour >= 5:
+        for i in bannedWords:
+            if msg.find(i) != -1:
+                remove = True
+
+    if message.channel.id == counting:
+        pass # do zrobienia
+    if remove:
+        toRemove = await message.channel.send("<@"+str(sender.id)+">!!! Zgodnie z paragrafem §1.8 na kanale <#935612476156936272> o godzinie "+timeNow+" czasu polskiego panuje bezwzględny zakaz używania przekleństw (z wyjątkami opisanymi w tym podpunkcie). W związku z powyższym wiadomość została usunięta. Pilnuj się!")
+        await message.delete()
+        await toRemove.delete(delay=15)
+    elif len(message.mentions) > 0 and message.author.id == mee6:
         userID = msg[(msg.find("<@")+2):msg.find(">")]
         #theUser = get(guild.members, id=userID)
         theUser = message.mentions[0]
