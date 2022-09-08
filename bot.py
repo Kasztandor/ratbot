@@ -40,7 +40,7 @@ async def on_message(message):
             await theUser.remove_roles(roleToRevoke)
         if level/10 == floor(level/10):
             await message.channel.send("Gratulacje <@"+str(userID)+"> Właśnie osiągnąłeś rangę <@&"+str(roleToGiveID)+">")
-    elif len(message.mentions) > 0 and message.mentions[0] == client.user and (message.content.find("przedstaw się") != -1 or message.content.find("przedstaw sie")):
+    elif len(message.mentions) > 0 and message.mentions[0] == client.user and (message.content.find("przedstaw się") != -1 or message.content.find("przedstaw sie") != -1):
         await message.channel.send("Siema! Jestem sobie botem napisanym przez Kasztandora i tak sobie tutaj działam i robię co do mnie należy. Pozdrawiam wszystkich i życzę udanego dnia!")
 
 
