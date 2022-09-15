@@ -98,9 +98,10 @@ async def on_message(message):
         for i in process:
             if i == " ":
                 images.append(Image.open("letters/space.png"))
-            else:
+                width += images[-1].width
+            elif os.path.exists("letters/"+i+".png"):
                 images.append(Image.open("letters/"+i+".png"))
-            width += images[-1].width
+                width += images[-1].width
         newImage = Image.new('RGB', (width, images[0].height))
         width = 0
         for i in images:
