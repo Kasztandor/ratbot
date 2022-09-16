@@ -22,6 +22,7 @@ import os
 class MyClient(discord.Client):
     async def on_ready(self):
         print(f'Logged on as {self.user}!')
+        await tree.synced(guild=discord.Object(id=697876849036099726))
 
     async def on_message(self, message):
         print(f'Message from {message.author}: {message.content}')
