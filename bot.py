@@ -19,31 +19,27 @@ from discord.ext import commands
 from PIL import Image
 import os
 
-class MyClient(discord.Client):
+guilds = [discord.Object(id=690599090928484403),discord.Object(id=697876849036099726)]
+
+class abot(discord.Client):
+    def __init__(self):
+        super().__init__(intents=discord.Intents.all())
+        self.sycned = False
     async def on_ready(self):
-        print(f'Logged on as {self.user}!')
-        await tree.sync(guild=discord.Object(id=697876849036099726))
-        self.synced = True
+        await self.wait_until_ready()
+        if not self.sycned:
+            await tree.sync(guild=discord.Object(id=690599090928484403))
+            self.synced = True
+        print("Bot is online")
 
-    async def on_message(self, message):
-        print(f'Message from {message.author}: {message.content}')
-
-intents = discord.Intents.default()
-intents.message_content = True
-
-bot = MyClient(intents=intents)
-
+bot = abot()
 tree = discord.app_commands.CommandTree(bot)
 
-@tree.command(name="test", description="test")
-async def self(interaction: discord.Interaction):
-    await interaction.response.send_message("test")
-
-@tree.command(name="ping", description="Bot odpowie ci pong")
+@tree.command(name="ping", description="Bot odpowie ci pong", guilds=guilds)
 async def self(interaction: discord.Interaction):
     await interaction.response.send_message("Pong!")
 
-@tree.command(name="generate", description="Bot wygeneruje wybrany przez ciebie napis")
+@tree.command(name="generate", description="Bot wygeneruje wybrany przez ciebie napis", guilds=guilds)
 async def self(interaction: discord.Interaction, argument:str):
     process = argument.lower().replace("ą","a").replace("ć","c").replace("ę","e").replace("ł","l").replace("ń","n").replace("ó","o").replace("ś","s").replace("ż","z").replace("ź","z")
     images = []
