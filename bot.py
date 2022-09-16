@@ -22,7 +22,7 @@ import os
 class MyClient(discord.Client):
     async def on_ready(self):
         print(f'Logged on as {self.user}!')
-        await tree.synced(guild=discord.Object(id=697876849036099726))
+        await tree.sync(guild=discord.Object(id=697876849036099726))
         self.synced = True
 
     async def on_message(self, message):
