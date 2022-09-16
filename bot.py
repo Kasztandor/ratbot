@@ -1,15 +1,3 @@
-# to ratcraft
-TOKEN = "MTAxNjQxNDc0NjQ2MDgyMzU2Mg.GiJyQJ.FKMwOLjSNJGfDKTwdj-zWgotmjRJnmO_FoAhok"
-roles = [698047161245630545,698047575013457931,703327203068346388,723329755465777193,732345037798506497,736570299537031280,736570295954964542,736570323234848930,736570319921348619,736571825043013672,736571823600435280]
-mee6 = 159985870458322944
-counting = 935612354832511026
-
-# to testbot
-#TOKEN = "NzIyNzQ0NzI1NzU2NzA2ODU3.GXlyrf.yGGwtT5EvsvbmrSgUhDf0VPcUUv5rYsQRSmzpE"
-#roles = [1016433847296086037,1016433864303980545,1016433874043162655,1016433882507255829,1016433889864069211,1016433896654639114,1016433907220107274,1016433916862799893,1016433924211232899,1016433930418798655,1016433939096817836]
-#mee6 = 386237687008591895
-#counting = 1017465965883170917
-
 import discord
 from discord.utils import get
 from math import floor
@@ -19,7 +7,19 @@ from discord.ext import commands
 from PIL import Image
 import os
 
-guilds = [discord.Object(id=690599090928484403),discord.Object(id=697876849036099726)]
+# to ratcraft
+TOKEN = "MTAxNjQxNDc0NjQ2MDgyMzU2Mg.GiJyQJ.FKMwOLjSNJGfDKTwdj-zWgotmjRJnmO_FoAhok"
+roles = [698047161245630545,698047575013457931,703327203068346388,723329755465777193,732345037798506497,736570299537031280,736570295954964542,736570323234848930,736570319921348619,736571825043013672,736571823600435280]
+mee6 = 159985870458322944
+counting = 935612354832511026
+guild = discord.Object(id=697876849036099726)
+
+# to testbot
+#TOKEN = "NzIyNzQ0NzI1NzU2NzA2ODU3.GXlyrf.yGGwtT5EvsvbmrSgUhDf0VPcUUv5rYsQRSmzpE"
+#roles = [1016433847296086037,1016433864303980545,1016433874043162655,1016433882507255829,1016433889864069211,1016433896654639114,1016433907220107274,1016433916862799893,1016433924211232899,1016433930418798655,1016433939096817836]
+#mee6 = 386237687008591895
+#counting = 1017465965883170917
+#guild = discord.Object(id=690599090928484403)
 
 class abot(discord.Client):
     def __init__(self):
@@ -28,18 +28,18 @@ class abot(discord.Client):
     async def on_ready(self):
         await self.wait_until_ready()
         if not self.sycned:
-            await tree.sync(guild=discord.Object(id=690599090928484403))
+            await tree.sync(guild=guild)
             self.synced = True
         print("Bot is online")
 
 bot = abot()
 tree = discord.app_commands.CommandTree(bot)
 
-@tree.command(name="ping", description="Bot odpowie ci pong", guilds=guilds)
+@tree.command(name="ping", description="Bot odpowie ci pong", guild=guild)
 async def self(interaction: discord.Interaction):
     await interaction.response.send_message("Pong!")
 
-@tree.command(name="generate", description="Bot wygeneruje wybrany przez ciebie napis", guilds=guilds)
+@tree.command(name="generate", description="Bot wygeneruje wybrany przez ciebie napis", guild=guild)
 async def self(interaction: discord.Interaction, argument:str):
     process = argument.lower().replace("ą","a").replace("ć","c").replace("ę","e").replace("ł","l").replace("ń","n").replace("ó","o").replace("ś","s").replace("ż","z").replace("ź","z")
     images = []
