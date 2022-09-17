@@ -6,6 +6,7 @@ import pytz
 from discord.ext import commands
 from PIL import Image
 import os
+from random import randrange
 
 # to ratcraft
 TOKEN = "MTAxNjQxNDc0NjQ2MDgyMzU2Mg.GiJyQJ.FKMwOLjSNJGfDKTwdj-zWgotmjRJnmO_FoAhok"
@@ -20,6 +21,10 @@ guild = discord.Object(id=697876849036099726)
 #mee6 = 386237687008591895
 #counting = 1017465965883170917
 #guild = discord.Object(id=690599090928484403)
+
+def ball8():
+    x=["Mój wywiad donosi: NIE","Wygląda dobrze","Kto wie?","Zapomnij o tym","Tak - w swoim czasie","Prawie jak tak","Nie teraz","YES, YES, YES","To musi poczekać","Mam pewne wątpliwości","Możesz na to liczyć","Zbyt wcześnie aby powiedzieć","Daj spokój","Absolutnie","Chyba żatrujesz?","Na pewno nie","Zrób to","Prawdopodobnie","Dla mnie rewelacja","Na pewno tak"]
+    return "Magiczna kula mówi: "+x[randrange(0,len(x))]
 
 class abot(discord.Client):
     def __init__(self):
@@ -38,6 +43,10 @@ tree = discord.app_commands.CommandTree(bot)
 @tree.command(name="ping", description="Bot odpowie ci pong", guild=guild)
 async def self(interaction: discord.Interaction):
     await interaction.response.send_message("Pong!")
+
+@tree.command(name="macja", description="Bot wylosuje hasło z magicznej kuli nr 8 (alternatywnie użyj !macja)", guild=guild)
+async def self(interaction: discord.Interaction):
+    await interaction.response.send_message(ball8())
 
 @tree.command(name="generate", description="Bot wygeneruje wybrany przez ciebie napis", guild=guild)
 async def self(interaction: discord.Interaction, argument:str):
@@ -110,25 +119,9 @@ async def on_message(message):
                 await sendedMessage.edit(content="Gratulacje <@"+str(userID)+"> Właśnie osiągnąłeś rangę <@&"+str(roleToGiveID)+">")
     elif len(message.mentions) > 0 and message.mentions[0] == bot.user and (msgLowercaseNoPolish.content.find("przedstaw sie") != -1):
         await message.channel.send("Siema! Jestem sobie botem napisanym przez Kasztandora i tak sobie tutaj działam i robię co do mnie należy. Pozdrawiam wszystkich i życzę udanego dnia!")
-    elif msgLowercase.startswith(".generate "):
-        process = msgLowercaseNoPolish.replace(".generate ","")
-        images = []
-        width = 0
-        for i in process:
-            if i == " ":
-                images.append(Image.open("letters/space.png"))
-                width += images[-1].width
-            elif os.path.exists("letters/"+i+".png"):
-                images.append(Image.open("letters/"+i+".png"))
-                width += images[-1].width
-        newImage = Image.new('RGB', (width, images[0].height))
-        width = 0
-        for i in images:
-            newImage.paste(i, (width, 0))
-            width += i.width
-        if os.path.exists("napis.png"):
-            os.remove("napis.png")
-        newImage.save("napis.png")
-        await message.channel.send(file=discord.File('napis.png'))
+    #elif msgLowercase.startswith(".generate "):
+    #    pass
+    elif msgLowercase == "!macja":
+        await message.channel.send(ball8())
 
 bot.run(TOKEN)
