@@ -31,8 +31,7 @@ class abot(discord.Client):
     def __init__(self):
         super().__init__(intents=discord.Intents.all())
         self.sycned = False
-    @asyncio.coroutine
-    def on_ready(self):
+    async def on_ready(self):
         await self.wait_until_ready()
         if not self.sycned:
             await tree.sync(guild=guild)
@@ -43,18 +42,15 @@ bot = abot()
 tree = discord.app_commands.CommandTree(bot)
 
 @tree.command(name="ping", description="Bot odpowie ci pong", guild=guild)
-@asyncio.coroutine
-def self(interaction: discord.Interaction):
+async def self(interaction: discord.Interaction):
     await interaction.response.send_message("Pong!")
 
 @tree.command(name="macja", description="Bot wylosuje hasło z magicznej kuli nr 8 (alternatywnie użyj !macja)", guild=guild)
-@asyncio.coroutine
-def self(interaction: discord.Interaction):
+async def self(interaction: discord.Interaction):
     await interaction.response.send_message(ball8())
 
 @tree.command(name="generate", description="Bot wygeneruje wybrany przez ciebie napis", guild=guild)
-@asyncio.coroutine
-def self(interaction: discord.Interaction, argument:str):
+async def self(interaction: discord.Interaction, argument:str):
     process = argument.lower().replace("ą","a").replace("ć","c").replace("ę","e").replace("ł","l").replace("ń","n").replace("ó","o").replace("ś","s").replace("ż","z").replace("ź","z")
     images = []
     width = 0
@@ -76,8 +72,7 @@ def self(interaction: discord.Interaction, argument:str):
     await interaction.response.send_message(file=discord.File('napis.png'))
 
 @bot.event
-@asyncio.coroutine
-def on_message(message):
+async def on_message(message):
     guild = message.guild
     msg = message.content
     msgLowercase = msg.lower()
