@@ -45,7 +45,7 @@ tree = discord.app_commands.CommandTree(bot)
 async def self(interaction: discord.Interaction):
     await interaction.response.send_message("Pong!")
 
-@tree.command(name="macja", description="Bot wylosuje hasło z magicznej kuli nr 8 (alternatywnie użyj !macja)", guild=guild)
+@tree.command(name="macja", description="Bot wylosuje hasło z magicznej kuli nr 8", guild=guild)
 async def self(interaction: discord.Interaction):
     await interaction.response.send_message(ball8())
 
@@ -56,12 +56,12 @@ async def self(interaction: discord.Interaction, argument:str):
     width = 0
     for i in process:
         if i == " ":
-            images.append(Image.open("letters/space.png"))
+            images.append(Image.open("letters/space.png").convert('RGBA'))
             width += images[-1].width
         elif os.path.exists("letters/"+i+".png"):
             images.append(Image.open("letters/"+i+".png"))
             width += images[-1].width
-    newImage = Image.new('RGB', (width, images[0].height))
+    newImage = Image.new('RGBA', (width, images[0].height))
     width = 0
     for i in images:
         newImage.paste(i, (width, 0))
@@ -70,6 +70,7 @@ async def self(interaction: discord.Interaction, argument:str):
         os.remove("napis.png")
     newImage.save("napis.png")
     await interaction.response.send_message(file=discord.File('napis.png'))
+    os.remove("napis.png")
 
 @bot.event
 async def on_message(message):
@@ -93,12 +94,12 @@ async def on_message(message):
             if msgLowercaseNoPolish.find(i) != -1:
                 remove = True
 
-    if message.channel.id == counting:
-        pass # do zrobienia
     if remove:
         toRemove = await message.channel.send("<@"+str(sender.id)+">!!! Zgodnie z paragrafem §1.8 na kanale <#935612476156936272> o godzinie "+timeNow+" czasu polskiego panuje bezwzględny zakaz używania przekleństw (z wyjątkami opisanymi w tym podpunkcie). W związku z powyższym wiadomość została usunięta. Pilnuj się!")
         await message.delete()
         await toRemove.delete(delay=15)
+    elif message.channel.id == counting:
+        pass # do zrobienia
     elif len(message.mentions) > 0 and message.author.id == mee6:
         userID = msg[(msg.find("<@")+2):msg.find(">")]
         #theUser = get(guild.members, id=userID)
@@ -120,9 +121,5 @@ async def on_message(message):
                 await sendedMessage.edit(content="Gratulacje <@"+str(userID)+"> Właśnie osiągnąłeś rangę <@&"+str(roleToGiveID)+">")
     elif len(message.mentions) > 0 and message.mentions[0] == bot.user and (msgLowercaseNoPolish.content.find("przedstaw sie") != -1):
         await message.channel.send("Siema! Jestem sobie botem napisanym przez Kasztandora i tak sobie tutaj działam i robię co do mnie należy. Pozdrawiam wszystkich i życzę udanego dnia!")
-    #elif msgLowercase.startswith(".generate "):
-    #    pass
-    elif msgLowercase == "!macja":
-        await message.channel.send(ball8())
 
 bot.run(TOKEN)
