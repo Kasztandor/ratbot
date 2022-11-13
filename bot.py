@@ -11,7 +11,7 @@ from random import randrange
 
 # to ratcraft
 TOKEN = "MTAxNjQxNDc0NjQ2MDgyMzU2Mg.GiJyQJ.FKMwOLjSNJGfDKTwdj-zWgotmjRJnmO_FoAhok"
-roles = [698047161245630545,698047575013457931,703327203068346388,723329755465777193,732345037798506497,736570299537031280,736570295954964542,736570323234848930,736570319921348619,736571825043013672,736571823600435280]
+roles = [698047161245630545,698047575013457931,703327203068346388,723329755465777193,732345037798506497,736570299537031280,736570295954964542,736570323234848930,36570319921348619,736571825043013672,736571823600435280]
 mee6 = 159985870458322944
 counting = 935612354832511026
 guild = discord.Object(id=697876849036099726)
@@ -44,6 +44,10 @@ tree = discord.app_commands.CommandTree(bot)
 @tree.command(name="ping", description="Bot odpowie ci pong", guild=guild)
 async def self(interaction: discord.Interaction):
     await interaction.response.send_message("Pong!")
+
+@tree.command(name="author", description="Bot poda ci najważniejsze informacje o autorze", guild=guild)
+async def self(interaction: discord.Interaction):
+    await interaction.response.send_message("Autorem bocika jest <@386237687008591895>.\n\nGithub: https://github.com/kasztandor\nFacebook: https://www.facebook.com/kasztandor\nReddit: https://www.reddit.com/user/Kasztandor\nInstagram: https://www.instagram.com/kasztandor_art\nInstagram: https://www.instagram.com/kasztandor_photos")
 
 @tree.command(name="macja", description="Bot wylosuje hasło z magicznej kuli nr 8", guild=guild)
 async def self(interaction: discord.Interaction):
