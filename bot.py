@@ -70,11 +70,9 @@ async def self(interaction: discord.Interaction, argument:str):
     for i in images:
         newImage.paste(i, (width, 0))
         width += i.width
-    if os.path.exists("napis.png"):
-        os.remove("napis.png")
     newImage.save("napis.png")
     await interaction.response.send_message(file=discord.File('napis.png'))
-    os.remove("napis.png")
+    #os.remove("napis.png")
 
 @bot.event
 async def on_message(message):
