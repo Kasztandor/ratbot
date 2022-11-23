@@ -47,7 +47,7 @@ async def self(interaction: discord.Interaction):
 
 @tree.command(name="author", description="Bot poda ci najważniejsze informacje o autorze", guild=guild)
 async def self(interaction: discord.Interaction):
-    await interaction.response.send_message("Autorem bocika jest <@386237687008591895>.\n\nGithub: https://github.com/kasztandor\nFacebook: https://www.facebook.com/kasztandor\nReddit: https://www.reddit.com/user/Kasztandor\nInstagram: https://www.instagram.com/kasztandor_art\nInstagram: https://www.instagram.com/kasztandor_photos")
+    await interaction.response.send_message("Autorem bocika jest <@386237687008591895>.\n\nGithub: https://github.com/kasztandor\nFacebook: https://www.facebook.com/kasztandor\nReddit: https://www.reddit.com/user/Kasztandor\nInstagram: https://www.instagram.com/kasztandor_art\nInstagram: https://www.instagram.com/kasztandor_photos", suppress_embeds=True)
 
 @tree.command(name="macja", description="Bot wylosuje hasło z magicznej kuli nr 8", guild=guild)
 async def self(interaction: discord.Interaction):
