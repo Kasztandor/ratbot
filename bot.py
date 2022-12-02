@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import env.py
 import discord
 from discord.utils import get
 from math import floor
@@ -9,19 +10,10 @@ from PIL import Image
 import os
 from random import randrange
 
-# to ratcraft
-TOKEN = "MTAxNjQxNDc0NjQ2MDgyMzU2Mg.GiJyQJ.FKMwOLjSNJGfDKTwdj-zWgotmjRJnmO_FoAhok"
 roles = [698047161245630545,698047575013457931,703327203068346388,723329755465777193,732345037798506497,736570299537031280,736570295954964542,736570323234848930,36570319921348619,736571825043013672,736571823600435280]
 mee6 = 159985870458322944
 counting = 935612354832511026
 guild = discord.Object(id=697876849036099726)
-
-# to testbot
-#TOKEN = "NzIyNzQ0NzI1NzU2NzA2ODU3.GXlyrf.yGGwtT5EvsvbmrSgUhDf0VPcUUv5rYsQRSmzpE"
-#roles = [1016433847296086037,1016433864303980545,1016433874043162655,1016433882507255829,1016433889864069211,1016433896654639114,1016433907220107274,1016433916862799893,1016433924211232899,1016433930418798655,1016433939096817836]
-#mee6 = 386237687008591895
-#counting = 1017465965883170917
-#guild = discord.Object(id=690599090928484403)
 
 def ball8():
     x=["Mój wywiad donosi: NIE","Wygląda dobrze","Kto wie?","Zapomnij o tym","Tak - w swoim czasie","Prawie jak tak","Nie teraz","YES, YES, YES","To musi poczekać","Mam pewne wątpliwości","Możesz na to liczyć","Zbyt wcześnie aby powiedzieć","Daj spokój","Absolutnie","Chyba żatrujesz?","Na pewno nie","Zrób to","Prawdopodobnie","Dla mnie rewelacja","Na pewno tak"]
