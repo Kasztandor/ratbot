@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import env.py
+import env
 import discord
 from discord.utils import get
 from math import floor
