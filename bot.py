@@ -116,4 +116,4 @@ async def on_message(message):
     elif len(message.mentions) > 0 and message.mentions[0] == bot.user and (msgLowercaseNoPolish.content.find("przedstaw sie") != -1):
         await message.channel.send("Siema! Jestem sobie botem napisanym przez Kasztandora i tak sobie tutaj działam i robię co do mnie należy. Pozdrawiam wszystkich i życzę udanego dnia!")
 
-bot.run(TOKEN)
+bot.run(env.TOKEN)
