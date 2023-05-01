@@ -13,4 +13,6 @@ memes = 1102627058254893078
 lastLeter = 1102627405836849192
 #ID of discord server
 guild = 123456789
+#ID of role allowing bot controling
+botController = 123456789
 ```

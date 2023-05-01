@@ -14,6 +14,9 @@ from random import randrange
 mee6 = 159985870458322944
 guild = discord.Object(id=env.guildID)
 
+#variables
+lastNumber = 0
+
 def ball8():
     x=["Mój wywiad donosi: NIE","Wygląda dobrze","Kto wie?","Zapomnij o tym","Tak - w swoim czasie","Prawie jak tak","Nie teraz","YES, YES, YES","To musi poczekać","Mam pewne wątpliwości","Możesz na to liczyć","Zbyt wcześnie aby powiedzieć","Daj spokój","Absolutnie","Chyba żatrujesz?","Na pewno nie","Zrób to","Prawdopodobnie","Dla mnie rewelacja","Na pewno tak"]
     return "Magiczna kula mówi: "+x[randrange(0,len(x))]
@@ -65,6 +68,11 @@ async def self(interaction: discord.Interaction, argument:str):
     await interaction.response.send_message(file=discord.File('napis.png'))
     #os.remove("napis.png")
 
+@tree.command(name="sync", description="[admin] Synchronizacja drzewa", guild=guild)
+async def self(interaction: discord.Interaction):
+    await tree.sync()
+    await interaction.response.send_message("Zsynchronizowano drzewo!")
+
 @bot.event
 async def on_message(message):
     guild = message.guild
@@ -91,8 +99,18 @@ async def on_message(message):
         toRemove = await message.channel.send("<@"+str(sender.id)+">!!! Zgodnie z paragrafem §1.8 na kanale <#935612476156936272> o godzinie "+timeNow+" czasu polskiego panuje bezwzględny zakaz używania przekleństw (z wyjątkami opisanymi w tym podpunkcie). W związku z powyższym wiadomość została usunięta. Pilnuj się!")
         await message.delete()
         await toRemove.delete(delay=15)
-    elif message.channel.id == counting:
-        pass # do zrobienia
+    elif message.channel.id == env.counting and message.author.id != bot.user.id:
+        try:
+            int(msg)
+        except:
+            toRemove = await message.channel.send("To nie jest kanał do pisania! Tutaj liczymy!")
+            await message.delete()
+            await toRemove.delete(delay=15)
+    elif message.channel.id == env.memes and message.author.id != bot.user.id:
+        message.channel.send("test"+str(message.attachments.count))
+        if len(message.attachments) or message.content.startswith("j:"):
+            await message.add_reaction("\U0001F44D")
+            await message.add_reaction("\U0001F44E")
     elif len(message.mentions) > 0 and message.author.id == mee6:
         userID = msg[(msg.find("<@")+2):msg.find(">")]
         #theUser = get(guild.members, id=userID)
@@ -102,11 +120,11 @@ async def on_message(message):
             rankPosition = floor(level/10)
             if rankPosition > 100:
                 rankPosition = 10
-            roleToGiveID = roles[rankPosition]
+            roleToGiveID = env.roles[rankPosition]
             roleToGive = discord.utils.get(guild.roles,id=roleToGiveID)
             await theUser.add_roles(roleToGive)
             if rankPosition > 0:
-                roleToRevokeID = roles[rankPosition-1]
+                roleToRevokeID = env.roles[rankPosition-1]
                 roleToRevoke = discord.utils.get(guild.roles,id=roleToRevokeID)
                 await theUser.remove_roles(roleToRevoke)
             if level/10 == floor(level/10):
