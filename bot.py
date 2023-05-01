@@ -108,7 +108,7 @@ async def on_message(message):
             await toRemove.delete(delay=15)
     elif message.channel.id == env.memes and message.author.id != bot.user.id:
         message.channel.send("test"+str(message.attachments.count))
-        if len(message.attachments) or message.content.startswith("j:"):
+        if len(message.attachments) or message.content.startswith("j:") or "https://" in msg or "http://" in msg:
             await message.add_reaction("\U0001F44D")
             await message.add_reaction("\U0001F44E")
     elif len(message.mentions) > 0 and message.author.id == mee6:
