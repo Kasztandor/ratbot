@@ -5,12 +5,12 @@ When you would like to make bot works on your server change this values
 ```python
 #Token of your bot
 TOKEN = ""
-#Roles for levels
-roles = [1,2,3,4,5]
-#Id of mee6 bot (bypassing buing mee6 premium for lever roles :p)
-mee6 = 386237687008591895 #(it is mee6 bot id)
-#Channel id of counting game channel 
+#Roles for levels from lowest to highest
+roles = [0,1,2,3,4,5,6,7,8,9]
+#IDs of fun channels
 counting = 123456789
+memes = 1102627058254893078
+lastLeter = 1102627405836849192
 #ID of discord server
-guild = discord.Object(id=123456789)
+guild = 123456789
 ```

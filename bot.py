@@ -10,10 +10,9 @@ from PIL import Image
 import os
 from random import randrange
 
-roles = [698047161245630545,698047575013457931,703327203068346388,723329755465777193,732345037798506497,736570299537031280,736570295954964542,736570323234848930,36570319921348619,736571825043013672,736571823600435280]
+#constants
 mee6 = 159985870458322944
-counting = 935612354832511026
-guild = discord.Object(id=697876849036099726)
+guild = discord.Object(id=env.guildID)
 
 def ball8():
     x=["Mój wywiad donosi: NIE","Wygląda dobrze","Kto wie?","Zapomnij o tym","Tak - w swoim czasie","Prawie jak tak","Nie teraz","YES, YES, YES","To musi poczekać","Mam pewne wątpliwości","Możesz na to liczyć","Zbyt wcześnie aby powiedzieć","Daj spokój","Absolutnie","Chyba żatrujesz?","Na pewno nie","Zrób to","Prawdopodobnie","Dla mnie rewelacja","Na pewno tak"]
