@@ -6,13 +6,13 @@ When you would like to make bot works on your server change this values
 #Token of your bot
 TOKEN = ""
 #Roles for levels from lowest to highest
-roles = [0,1,2,3,4,5,6,7,8,9]
+ROLES = [0,1,2,3,4,5,6,7,8,9]
 #IDs of fun channels
-counting = 123456789
-memes = 1102627058254893078
-lastLeter = 1102627405836849192
+COUNTING_CHANNEL = 0
+MEMES_CHANNEL = 0
+LASTLETTER_CHANNEL = 0
 #ID of discord server
-guild = 123456789
-#ID of role allowing bot controling
-botController = 123456789
+GUILD_ID = 0
+#ID/IDS of role/roles allowing bot controling
+BOT_CONTROLLER = 0
 ```

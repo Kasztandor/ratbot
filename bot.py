@@ -1,21 +1,26 @@
 # -*- coding: utf-8 -*-
 import env
 import discord
+import pytz
+import os
 from discord.utils import get
 from math import floor
 from datetime import datetime
-import pytz
 from discord.ext import commands
 from PIL import Image
-import os
 from random import randrange
+from discord import FFmpegPCMAudio
 
 #constants
 mee6 = 159985870458322944
-guild = discord.Object(id=env.guildID)
+guild = discord.Object(id=env.GUILD_ID)
 
 #variables
 lastNumber = 0
+
+#music player
+queue = []
+nowPlaying = ""
 
 def ball8():
     x=["Mój wywiad donosi: NIE","Wygląda dobrze","Kto wie?","Zapomnij o tym","Tak - w swoim czasie","Prawie jak tak","Nie teraz","YES, YES, YES","To musi poczekać","Mam pewne wątpliwości","Możesz na to liczyć","Zbyt wcześnie aby powiedzieć","Daj spokój","Absolutnie","Chyba żatrujesz?","Na pewno nie","Zrób to","Prawdopodobnie","Dla mnie rewelacja","Na pewno tak"]
@@ -34,6 +39,104 @@ class abot(discord.Client):
 
 bot = abot()
 tree = discord.app_commands.CommandTree(bot)
+
+async def afterPlayAsync():
+    global queue
+    global nowPlaying
+    if (len(queue)):
+        print("Następny song")
+        if ((nowPlaying not in queue) and os.path.isfile("yt/"+nowPlaying+".mp3")):
+            os.remove("yt/"+nowPlaying)
+        playSong(queue.pop(0))
+    else:
+        print("Uciekam")
+        nowPlaying = ""
+        queue = []
+        if (len(bot.voice_clients)):
+            await bot.voice_clients[0].disconnect()
+
+def afterPlay(err):
+    asyncio.run_coroutine_threadsafe(afterPlayAsync(), bot.loop)
+
+def playSong(vid_id):
+    global nowPlaying
+    print("playSong()")
+    nowPlaying = vid_id
+    source = FFmpegPCMAudio("yt/"+vid_id+".mp3")
+    bot.voice_clients[0].play(source, after=afterPlay)
+
+@tree.command(name="play", description="Dodaj utwór do kolejki odtwarzania", guild=guild)
+async def self(interaction: discord.Interaction, fraza:str):
+    global queue
+    channel = interaction.user.voice
+    if channel is None:
+        await interaction.response.send_message("Musisz być na kanale głosowym!")
+    else:
+        srch = pytube.Search(fraza)
+        if len(srch.results) == 0:
+            await interaction.response.send_message("Nie znaleziono takiego utworu!")
+        else:
+            await interaction.response.send_message("Trwa pobieranie wybranego utworu...")
+            try:
+                if (not os.path.isfile("yt/"+srch.results[0].video_id+".mp3")):
+                    yt = pytube.YouTube("https://www.youtube.com/watch?v="+srch.results[0].video_id)
+                    video = yt.streams.filter(only_audio=True).first()
+                    video.download(filename=srch.results[0].video_id+".mp3",output_path="yt")
+                if (len(bot.voice_clients) == 0):
+                    await channel.channel.connect()
+                    playSong(srch.results[0].video_id)
+                elif (bot.voice_clients[0].is_playing()):
+                    queue.append(srch.results[0].video_id)
+                else:
+                    playSong(srch.results[0].video_id)
+                await interaction.edit_original_response(content="Wyszukano: **"+fraza+"**.\nDodano do kolejki: **"+srch.results[0].title+"**!")
+            except:
+                await interaction.edit_original_response(content="Głupi youtube nie pozwala mi pobrać tego utworu.")
+
+@tree.command(name="pause", description="Pauzuje i wznawia odtwarzanie muzyki", guild=guild)
+async def self(interaction: discord.Interaction):
+    if (len(bot.voice_clients) and bot.voice_clients[0].is_playing()):
+        if (bot.voice_clients[0].is_paused()):
+            bot.voice_clients[0].resume()
+            await interaction.response.send_message("Wznowiono odtwarzanie muzyki.")
+        else:
+            bot.voice_clients[0].pause()
+            await interaction.response.send_message("Spauzowano odtwarzanie muzyki.")
+    else:
+        await interaction.response.send_message("Bot nic nie gra przystojniaczku. Nie jestem w stanie zarzucić pauzy JOŁ.")
+
+@tree.command(name="queue", description="Sprawdź kolejkę odtwarzania", guild=guild)
+async def self(interaction: discord.Interaction, page:int=1):
+    global queue
+    if (len(queue) == 0):
+        await interaction.response.send_message("Aktualnie nic nie czeka na odtworzenie.")
+    else:
+        prefix = ""
+        if (page < 1):
+            prefix = "Podana strona nie istnieje. Wyświetlam pierwszą dostępną stronę.\n\n"
+            page = 1
+        elif (page > math.ceil(len(queue)/10)):
+            prefix = "Podana strona nie istnieje. Wyświetlam ostatnią dostępną stronę.\n\n"
+            page = math.ceil(len(queue)/10)
+        pg = page-1
+        middle = ""
+        for i in range(10):
+            if (len(queue) == pg*10+i):
+                break
+            srch = pytube.Search(queue[pg*10+i])
+            middle += str(pg*10+i+1)+". **"+srch.results[0].title+"**\n"
+        sufix = "\nWyświetlono stronę: "+str(page)+"/"+str(math.ceil(len(queue)/10))
+        await interaction.response.send_message(prefix+middle+sufix)
+
+@tree.command(name="stop", description="Zatrzymuje odtwarzacz", guild=guild)
+async def self(interaction: discord.Interaction):
+    global queue
+    queue = []
+    shutil.rmtree("yt")
+    os.mkdir("yt")
+    if (len(bot.voice_clients)):
+        bot.voice_clients[0].disconnect()
+    await interaction.response.send_message("Zatrzymano odtwarzacz.")
 
 @tree.command(name="ping", description="Bot odpowie ci pong", guild=guild)
 async def self(interaction: discord.Interaction):
@@ -90,6 +193,11 @@ async def on_message(message):
     timeNow = timeString[0]+":"+timeString[1]+":"+timeString[2]
     bannedWords = ['chuj','chuja','chujek','chuju','chujem','chujnia','chujowy','chujowa','chujowe','dojebac','dojebac','dojebie','dojebal','dojebal','dojebala','dojebala','dojebalem','dojebalem','dojebalam','dojebalam','dojebie','dojebie','dopieprzac','dopieprzac','dopierdalac','dopierdalac','dopierdala','dopierdalal','dopierdalal','dopierdalala','dopierdalala','dopierdoli','dopierdolil','dopierdolil','dopierdole','dopierdole','dopierdoli','dopierdalajacy','dopierdalajacy','dopierdolic','dopierdolic','huj','hujek','hujnia','huja','huje','hujem','huju','jebac','jebac','jebal','jebal','jebie','jebia','jebia','jebak','jebaka','jebal','jebal','jebany','jebane','jebanka','jebanko','jebankiem','jebanymi','jebana','jebanym','jebanej','jebana','jebana','jebani','jebanych','jebanymi','jebcie','jebiacy','jebiacy','jebiaca','jebiaca','jebiacego','jebiacego','jebiacej','jebiacej','jebia','jebia','jebie','jebie','jebliwy','jebnac','jebnac','jebnac','jebnac','jebnal','jebnal','jebna','jebna','jebnela','jebnela','jebnie','jebnij','jebut','koorwa','korwa','kurestwo','kurew','kurewski','kurewska','kurewskiej','kurewska','kurewska','kurewsko','kurewstwo','kurwa','kurwaa','kurwami','kurwa','kurwe','kurwe','kurwie','kurwiska','kurwo','kurwy','kurwach','kurwami','kurewski','kurwiarz','kurwiacy','kurwica','kurwic','kurwic','kurwidolek','kurwik','kurwiki','kurwiszcze','kurwiszon','kurwiszona','kurwiszonem','kurwiszony','matkojebca','matkojebcy','matkojebca','matkojebca','matkojebcami','matkojebcach','nabarlozyc','najebac','najebac','najebal','najebal','najebala','najebala','najebane','najebany','najebana','najebana','najebie','najebia','najebia','naopierdalac','naopierdalac','naopierdalal','naopierdalal','naopierdalala','naopierdalala','naopierdalala','napierdalac','napierdalac','napierdalajacy','napierdalajacy','napierdolic','napierdolic','nawpierdalac','nawpierdalac','nawpierdalal','nawpierdalal','nawpierdalala','nawpierdalala','odpieprzac','odpieprzac','odpierdalac','odpierdalac','odpierdol','odpierdolil','odpierdolil','odpierdolila','odpierdolila','odpierdoli','odpierdalajacy','odpierdalajacy','odpierdalajaca','odpierdalajaca','odpierdolic','odpierdolic','odpierdoli','odpierdolil','opieprzajacy','opierdalac','opierdalac','opierdala','opierdalajacy','opierdalajacy','opierdol','opierdolic','opierdolic','opierdoli','opierdola','opierdola','piczka','pieprzniety','pieprzniety','pieprzony','pierdel','pierdlu','pierdolacy','pierdolacy','pierdolaca','pierdolaca','pierdol','pierdole','pierdolenie','pierdoleniem','pierdoleniu','pierdole','pierdolec','pierdola','pierdola','pierdolic','pierdolicie','pierdolic','pierdolil','pierdolil','pierdolila','pierdolila','pierdoli','pierdolniety','pierdolniety','pierdolisz','pierdolnac','pierdolnac','pierdolnal','pierdolnal','pierdolnela','pierdolnela','pierdolnie','pierdolniety','pierdolnij','pierdolnik','pierdolona','pierdolone','pierdolony','pierdolki','podpierdalac','podpierdalac','podpierdala','podpierdalajacy','podpierdalajacy','podpierdolic','podpierdolic','podpierdoli','pojeb','pojeba','pojebami','pojebani','pojebanego','pojebanemu','pojebani','pojebany','pojebanych','pojebanym','pojebanymi','pojebem','pojebac','pojebac','pojebalo','popierdala','popierdalac','popierdalac','popierdolic','popierdolic','popierdoli','popierdolonego','popierdolonemu','popierdolonym','popierdolone','popierdoleni','popierdolony','porozpierdalac','porozpierdala','porozpierdalac','przejebac','przejebane','przejebac','przyjebali','przepierdalac','przepierdalac','przepierdala','przepierdalajacy','przepierdalajacy','przepierdalajaca','przepierdalajaca','przepierdolic','przepierdolic','przyjebac','przyjebac','przyjebie','przyjebala','przyjebala','przyjebal','przyjebal','przypieprzac','przypieprzac','przypieprzajacy','przypieprzajacy','przypieprzajaca','przypieprzajaca','przypierdalac','przypierdalac','przypierdala','przypierdoli','przypierdalajacy','przypierdalajacy','przypierdolic','przypierdolic','qrwa','rozjebac','rozjebac','rozjebie','rozjebala','rozjebia','rozpierdalac','rozpierdalac','rozpierdala','rozpierdolic','rozpierdolic','rozpierdole','rozpierdoli','rozpierducha','skurwic','skurwiel','skurwiela','skurwielem','skurwielu','skurwysyn','skurwysynow','skurwysynow','skurwysyna','skurwysynem','skurwysynu','skurwysyny','skurwysynski','skurwysynski','skurwysynstwo','skurwysynstwo','spierdalac','spierdalac','spierdala','spierdalal','spierdalala','spierdalal','spierdalalcie','spierdalala','spierdalajacy','spierdalajacy','spierdolic','spierdolic','spierdoli','spierdolila','spierdolilo','spierdola','spierdola','srac','srac','srajacy','srajacy','srajac','srajac','sraj','sukinsyn','sukinsyny','sukinsynom','sukinsynowi','sukinsynow','sukinsynow','smierdziel','udupic','ujebac','ujebac','ujebal','ujebal','ujebana','ujebany','ujebie','ujebala','ujebala','upierdalac','upierdalac','upierdala','upierdoli','upierdolic','upierdolic','upierdoli','upierdola','upierdola','upierdoleni','wjebac','wjebac','wjebie','wjebia','wjebia','wjebiemy','wjebiecie','wkurwiac','wkurwiac','wkurwi','wkurwia','wkurwial','wkurwial','wkurwiajacy','wkurwiajacy','wkurwiajaca','wkurwiajaca','wkurwic','wkurwic','wkurwi','wkurwiacie','wkurwiaja','wkurwiali','wkurwia','wkurwia','wkurwimy','wkurwicie','wkurwiacie','wkurwic','wkurwic','wkurwia','wpierdalac','wpierdalac','wpierdalajacy','wpierdalajacy','wpierdol','wpierdolic','wpierdolic','wpizdu','wyjebac','wyjebac','wyjebali','wyjebal','wyjebac','wyjebala','wyjebaly','wyjebie','wyjebia','wyjebia','wyjebiesz','wyjebie','wyjebiecie','wyjebiemy','wypieprzac','wypieprzac','wypieprza','wypieprzal','wypieprzal','wypieprzala','wypieprzala','wypieprzy','wypieprzyla','wypieprzyla','wypieprzyl','wypieprzyl','wypierdal','wypierdalac','wypierdalac','wypierdala','wypierdalaj','wypierdalal','wypierdalal','wypierdalala','wypierdalala','wypierdalac','wypierdolic','wypierdolic','wypierdoli','wypierdolimy','wypierdolicie','wypierdola','wypierdola','wypierdolili','wypierdolil','wypierdolil','wypierdolila','wypierdolila','zajebac','zajebac','zajebie','zajebia','zajebia','zajebial','zajebial','zajebala','zajebiala','zajebali','zajebana','zajebani','zajebane','zajebany','zajebanych','zajebanym','zajebanymi', 'zapieprzyc','zapieprzyc','zapieprzy','zapieprzyl','zapieprzyl','zapieprzyla','zapieprzyla','zapieprza','zapieprza','zapieprzy','zapieprzymy','zapieprzycie','zapieprzysz','zapierdala','zapierdalac','zapierdalac','zapierdalaja','zapierdalal','zapierdalaj','zapierdalajcie','zapierdalala','zapierdalala','zapierdalali','zapierdalajacy','zapierdalajacy','zapierdolic','zapierdolic','zapierdoli','zapierdolil','zapierdolil','zapierdolila','zapierdolila','zapierdola','zapierdola','zapierniczac','zapierniczajacy','zasrac','zasranym','zasrywac','zasrywajacy','zesrywac','zesrywajacy','zjebac','zjebac','zjebal','zjebal','zjebala','zjebala','zjebana','zjebia','zjebali','zjeby']
     remove = False
+
+    if (msg == "!sync" and message.author.id == 386237687008591895):
+        await tree.sync()
+        await message.channel.send("Zsynchronizowano drzewo!")
+
     if time[0] < 20 and time[0] >= 5:
         for i in bannedWords:
             if msgLowercaseNoPolish.find(i) != -1:
@@ -99,14 +207,14 @@ async def on_message(message):
         toRemove = await message.channel.send("<@"+str(sender.id)+">!!! Zgodnie z paragrafem §1.8 na kanale <#935612476156936272> o godzinie "+timeNow+" czasu polskiego panuje bezwzględny zakaz używania przekleństw (z wyjątkami opisanymi w tym podpunkcie). W związku z powyższym wiadomość została usunięta. Pilnuj się!")
         await message.delete()
         await toRemove.delete(delay=15)
-    elif message.channel.id == env.counting and message.author.id != bot.user.id:
+    elif message.channel.id == env.COUNTING_CHANNEL and message.author.id != bot.user.id:
         try:
             int(msg)
         except:
             toRemove = await message.channel.send("To nie jest kanał do pisania! Tutaj liczymy!")
             await message.delete()
             await toRemove.delete(delay=15)
-    elif message.channel.id == env.memes and message.author.id != bot.user.id:
+    elif message.channel.id == env.MEMES_CHANNEL and message.author.id != bot.user.id:
         message.channel.send("test"+str(message.attachments.count))
         if len(message.attachments) or message.content.startswith("j:") or "https://" in msg or "http://" in msg:
             await message.add_reaction("\U0001F44D")
@@ -120,11 +228,11 @@ async def on_message(message):
             rankPosition = floor(level/10)
             if rankPosition > 100:
                 rankPosition = 10
-            roleToGiveID = env.roles[rankPosition]
+            roleToGiveID = env.ROLES[rankPosition]
             roleToGive = discord.utils.get(guild.roles,id=roleToGiveID)
             await theUser.add_roles(roleToGive)
             if rankPosition > 0:
-                roleToRevokeID = env.roles[rankPosition-1]
+                roleToRevokeID = env.ROLES[rankPosition-1]
                 roleToRevoke = discord.utils.get(guild.roles,id=roleToRevokeID)
                 await theUser.remove_roles(roleToRevoke)
             if level/10 == floor(level/10):
