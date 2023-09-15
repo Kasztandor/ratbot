@@ -1,0 +1,6 @@
+discord.py
+mysql-connector
+pytube
+PyNaCl
+pillow
+pytz
