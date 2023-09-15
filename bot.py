@@ -3,6 +3,7 @@ import env
 import discord
 import pytz
 import os
+import pytube
 from discord.utils import get
 from math import floor
 from datetime import datetime
