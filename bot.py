@@ -155,9 +155,13 @@ async def self(interaction: discord.Interaction, count:int=1):
 async def self(interaction: discord.Interaction):
     global queue
     queue = []
-    shutil.rmtree("yt")
+    try:
+        shutil.rmtree("yt")
+    except:
+        pass
     os.mkdir("yt")
     if (len(bot.voice_clients)):
+        bot.voice_clients[0].stop()
         bot.voice_clients[0].disconnect()
     await interaction.response.send_message("Zatrzymano odtwarzacz.")
 
