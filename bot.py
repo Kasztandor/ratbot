@@ -4,6 +4,9 @@ import discord
 import pytz
 import os
 import pytube
+import math
+import asyncio
+import shutil
 from discord.utils import get
 from math import floor
 from datetime import datetime
@@ -96,7 +99,7 @@ async def self(interaction: discord.Interaction, fraza:str):
 
 @tree.command(name="pause", description="Pauzuje i wznawia odtwarzanie muzyki", guild=guild)
 async def self(interaction: discord.Interaction):
-    if (len(bot.voice_clients) and bot.voice_clients[0].is_playing()):
+    if (len(bot.voice_clients) and (bot.voice_clients[0].is_playing() or bot.voice_clients[0].is_paused)):
         if (bot.voice_clients[0].is_paused()):
             bot.voice_clients[0].resume()
             await interaction.response.send_message("Wznowiono odtwarzanie muzyki.")
@@ -112,7 +115,7 @@ async def self(interaction: discord.Interaction, page:int=1):
     if (len(queue) == 0):
         await interaction.response.send_message("Aktualnie nic nie czeka na odtworzenie.")
     else:
-        prefix = ""
+        prefix = "Kolejka odtwarzania:\n\n"
         if (page < 1):
             prefix = "Podana strona nie istnieje. Wyświetlam pierwszą dostępną stronę.\n\n"
             page = 1
@@ -128,6 +131,25 @@ async def self(interaction: discord.Interaction, page:int=1):
             middle += str(pg*10+i+1)+". **"+srch.results[0].title+"**\n"
         sufix = "\nWyświetlono stronę: "+str(page)+"/"+str(math.ceil(len(queue)/10))
         await interaction.response.send_message(prefix+middle+sufix)
+
+"""
+@tree.command(name="skip", description="Pomija aktualnie odtwarzany utwór (lub więcej)", guild=guild)
+async def self(interaction: discord.Interaction, count:int=1):
+    global queue
+    if (count > 0):
+        counter = 1
+        while (count > 1):
+            count -= 1
+            counter += 1
+            if (not len(queue)):
+                break
+            queue.pop(0)
+        bot.voice_clients[0].stop()
+        await afterPlayAsync()
+        await interaction.response.send_message("Pominięto "+str(counter)+" utworów.")
+    else:
+        await interaction.response.send_message("Nie można pominąć mniej niż 1 utworów.")
+"""
 
 @tree.command(name="stop", description="Zatrzymuje odtwarzacz", guild=guild)
 async def self(interaction: discord.Interaction):
