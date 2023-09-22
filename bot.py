@@ -225,13 +225,13 @@ async def on_message(message):
         await tree.sync()
         await message.channel.send("Zsynchronizowano drzewo!")
 
-    if time[0] < 20 and time[0] >= 5:
+    if time[0] < 20 and time[0] >= 5 and message.author.id != 421932366802714625:
         for i in bannedWords:
             if msgLowercaseNoPolish.find(i) != -1:
                 remove = True
 
     if remove:
-        toRemove = await message.channel.send("<@"+str(sender.id)+">!!! Zgodnie z paragrafem §1.8 na kanale <#935612476156936272> o godzinie "+timeNow+" czasu polskiego panuje bezwzględny zakaz używania przekleństw (z wyjątkami opisanymi w tym podpunkcie). W związku z powyższym wiadomość została usunięta. Pilnuj się!")
+        toRemove = await message.channel.send("<@"+str(sender.id)+">!!! Zgodnie z paragrafem §1.8 na kanale <#935612476156936272> o godzinie "+timeNow+" czasu polskiego panuje bezwzględny zakaz używania przekleństw (z wyjątkami opisanymi w tym podpunkcie oraz za wyjątkiem boskiego Pabito). W związku z powyższym wiadomość została usunięta. Pilnuj się!")
         await message.delete()
         await toRemove.delete(delay=15)
     elif message.channel.id == env.COUNTING_CHANNEL and message.author.id != bot.user.id:
