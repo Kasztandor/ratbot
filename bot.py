@@ -198,10 +198,10 @@ async def self(interaction: discord.Interaction, argument:str):
     await interaction.response.send_message(file=discord.File('napis.png'))
     #os.remove("napis.png")
 
-@tree.command(name="sync", description="[admin] Synchronizacja drzewa", guild=guild)
-async def self(interaction: discord.Interaction):
-    await tree.sync()
-    await interaction.response.send_message("Zsynchronizowano drzewo!")
+#@tree.command(name="sync", description="[admin] Synchronizacja drzewa", guild=guild)
+#async def self(interaction: discord.Interaction):
+#    await tree.sync()
+#    await interaction.response.send_message("Zsynchronizowano drzewo!")
 
 @bot.event
 async def on_message(message):
@@ -210,6 +210,7 @@ async def on_message(message):
     msgLowercase = msg.lower()
     msgLowercaseNoPolish = msgLowercase.replace("ą","a").replace("ć","c").replace("ę","e").replace("ł","l").replace("ń","n").replace("ó","o").replace("ś","s").replace("ż","z").replace("ź","z")
     sender = message.author
+    badGuys = [421932366802714625, 771078648140791808]
 
     IST = pytz.timezone('Europe/Warsaw')
     time = [datetime.now(IST).hour,datetime.now(IST).minute,datetime.now(IST).second]
@@ -225,16 +226,20 @@ async def on_message(message):
         await tree.sync()
         await message.channel.send("Zsynchronizowano drzewo!")
 
-    if (time[0] < 20 and time[0] >= 5 and message.author.id != 421932366802714625) or message.author.id == 771078648140791808:
-        for i in bannedWords:
-            if msgLowercaseNoPolish.find(i) != -1:
-                remove = True
+    containsBadWord = False
 
-    if remove and message.author.id != bot.user.id:
-        if message.author.id == 771078648140791808:
-            toRemove = await message.channel.send("<@"+str(sender.id)+">!!! Ty dziwko jebana! Nie wolno ci przekilać, bo Pablo ci zabronił, a jego słowo jest święte (czy coś), w związku z tym wiadomość została usunięta. Pilnuj się!")
-        else:
+    for i in bannedWords:
+        if msgLowercaseNoPolish.find(i) != -1:
+            containsBadWords = True
+
+    if (time[0] < 20 and time[0] >= 5 and containsBadWord):
+        remove = True
+
+    if ((remove and message.author.id not in badGuys) or (not containsBadWords and message.author.id in badGuys)) and message.author.id != bot.user.id:
+        if remove:
             toRemove = await message.channel.send("<@"+str(sender.id)+">!!! Zgodnie z paragrafem §1.8 na kanale <#935612476156936272> o godzinie "+timeNow+" czasu polskiego panuje bezwzględny zakaz używania przekleństw (z wyjątkami opisanymi w tym podpunkcie oraz za wyjątkiem boskiego Pabito). W związku z powyższym wiadomość została usunięta. Pilnuj się!")
+        else:
+            toRemove = await message.channel.send("<@"+str(sender.id)+"Na mocy cyrografu zawartego dnia 15-10-2023 każda twa wiadomość nie zawierająca słowa z listy wulgaryzmów serwerowych zostanie usuinięta")
         await message.delete()
         await toRemove.delete(delay=15)
     elif message.channel.id == env.COUNTING_CHANNEL and message.author.id != bot.user.id:
