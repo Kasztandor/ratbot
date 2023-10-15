@@ -235,9 +235,11 @@ async def on_message(message):
     if (time[0] < 20 and time[0] >= 5 and containsBadWords):
         remove = True
 
-    if ((remove and sender.id not in badGuys) or (containsBadWords and sender.id in badGuys)) and sender.id != bot.user.id:
-        if containsBadWords:
-            toRemove = await message.channel.send("<@"+str(sender.id)+" na mocy cyrografu zawartego dnia 15-10-2023 każda twa wiadomość nie zawierająca słowa z listy wulgaryzmów serwerowych została usuinięta!")
+    print(sender.id, (remove and sender.id not in badGuys))
+
+    if ((remove and sender.id not in badGuys) or ((not containsBadWords or msgLowercaseNoPolish.find("zajebiscie") == -1) and sender.id in badGuys)) and sender.id != bot.user.id:
+        if sender.id in badGuys:
+            toRemove = await message.channel.send("<@"+str(sender.id)+"> na mocy cyrografu zawartego dnia 15-10-2023 każda twa wiadomość nie zawierająca słowa z listy wulgaryzmów serwerowych została usuinięta!")
         else:
             toRemove = await message.channel.send("<@"+str(sender.id)+">!!! Zgodnie z paragrafem §1.8 na kanale <#935612476156936272> o godzinie "+timeNow+" czasu polskiego panuje bezwzględny zakaz używania przekleństw (z wyjątkami opisanymi w tym podpunkcie oraz za wyjątkiem boskiego Pabito). W związku z powyższym wiadomość została usunięta. Pilnuj się!")
         await message.delete()
