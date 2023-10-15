@@ -232,7 +232,7 @@ async def on_message(message):
         if msgLowercaseNoPolish.find(i) != -1:
             containsBadWords = True
 
-    if (time[0] < 20 and time[0] >= 5 and containsBadWord):
+    if (time[0] < 20 and time[0] >= 5 and containsBadWords):
         remove = True
 
     if ((remove and message.author.id not in badGuys) or (containsBadWords and message.author.id in badGuys)) and message.author.id != bot.user.id:
