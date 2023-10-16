@@ -14,6 +14,7 @@ from discord.ext import commands
 from PIL import Image
 from random import randrange
 from discord import FFmpegPCMAudio
+from urllib.parse import urlparse
 
 #constants
 mee6 = 159985870458322944
@@ -25,6 +26,13 @@ lastNumber = 0
 #music player
 queue = []
 nowPlaying = ""
+
+def is_url(url):
+    try:
+        result = urlparse(url)
+        return all([result.scheme, result.netloc])
+    except ValueError:
+        return False
 
 def ball8():
     x=["Mój wywiad donosi: NIE","Wygląda dobrze","Kto wie?","Zapomnij o tym","Tak - w swoim czasie","Prawie jak tak","Nie teraz","YES, YES, YES","To musi poczekać","Mam pewne wątpliwości","Możesz na to liczyć","Zbyt wcześnie aby powiedzieć","Daj spokój","Absolutnie","Chyba żatrujesz?","Na pewno nie","Zrób to","Prawdopodobnie","Dla mnie rewelacja","Na pewno tak"]
@@ -210,7 +218,7 @@ async def on_message(message):
     msgLowercase = msg.lower()
     msgLowercaseNoPolish = msgLowercase.replace("ą","a").replace("ć","c").replace("ę","e").replace("ł","l").replace("ń","n").replace("ó","o").replace("ś","s").replace("ż","z").replace("ź","z")
     sender = message.author
-    badGuys = [421932366802714625, 771078648140791808, 386237687008591895]
+    badGuys = [421932366802714625, 771078648140791808]
 
     IST = pytz.timezone('Europe/Warsaw')
     time = [datetime.now(IST).hour,datetime.now(IST).minute,datetime.now(IST).second]
@@ -235,9 +243,8 @@ async def on_message(message):
     if (time[0] < 20 and time[0] >= 5 and containsBadWords):
         remove = True
 
-    print(sender.id, (remove and sender.id not in badGuys))
-
-    if ((remove and sender.id not in badGuys) or (not containsBadWords and sender.id in badGuys)) and sender.id != bot.user.id:
+    if ((remove and sender.id not in badGuys) or (not containsBadWords and sender.id in badGuys and len(msg) and not is_url(msg))) and sender.id != bot.user.id:
+        print(len(msg))
         if sender.id in badGuys:
             toRemove = await message.channel.send("<@"+str(sender.id)+"> na mocy cyrografu zawartego dnia 15-10-2023 każda twa wiadomość nie zawierająca słowa z listy wulgaryzmów serwerowych została usuinięta!")
         else:
