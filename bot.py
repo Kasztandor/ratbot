@@ -38,6 +38,16 @@ def ball8():
     x=["Mój wywiad donosi: NIE","Wygląda dobrze","Kto wie?","Zapomnij o tym","Tak - w swoim czasie","Prawie jak tak","Nie teraz","YES, YES, YES","To musi poczekać","Mam pewne wątpliwości","Możesz na to liczyć","Zbyt wcześnie aby powiedzieć","Daj spokój","Absolutnie","Chyba żatrujesz?","Na pewno nie","Zrób to","Prawdopodobnie","Dla mnie rewelacja","Na pewno tak"]
     return "Magiczna kula mówi: "+x[randrange(0,len(x))]
 
+#lastbirthday
+birth = None
+
+async def birthday():
+    while (True):
+        print("test")
+        channel = bot.get_channel(1165004603897675796)
+        #await channel.send("test")
+        await asyncio.sleep(60)
+
 class abot(discord.Client):
     def __init__(self):
         super().__init__(intents=discord.Intents.all())
@@ -47,6 +57,7 @@ class abot(discord.Client):
         if not self.sycned:
             await tree.sync(guild=guild)
             self.synced = True
+        birth = asyncio.create_task(birthday())
         print("Bot is online")
 
 bot = abot()
@@ -104,6 +115,11 @@ async def self(interaction: discord.Interaction, fraza:str):
                 await interaction.edit_original_response(content="Wyszukano: **"+fraza+"**.\nDodano do kolejki: **"+srch.results[0].title+"**!")
             except:
                 await interaction.edit_original_response(content="Głupi youtube nie pozwala mi pobrać tego utworu.")
+
+@tree.command(name="date")
+async def self(ctx, member: discord.Member):
+    joined_at = member.joined_at.strftime("%b %d, %Y, %T")
+    await ctx.send(f" {member.mention} Joined at {joined_at}")
 
 @tree.command(name="pause", description="Pauzuje i wznawia odtwarzanie muzyki", guild=guild)
 async def self(interaction: discord.Interaction):
