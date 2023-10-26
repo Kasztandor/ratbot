@@ -234,7 +234,8 @@ async def on_message(message):
     msgLowercase = msg.lower()
     msgLowercaseNoPolish = msgLowercase.replace("ą","a").replace("ć","c").replace("ę","e").replace("ł","l").replace("ń","n").replace("ó","o").replace("ś","s").replace("ż","z").replace("ź","z")
     sender = message.author
-    badGuys = [421932366802714625, 771078648140791808]
+    badGuys = [421932366802714625, 771078648140791808, 883308544600973363]
+    badGuysDate = ["15-10-2023", "15-10-2023", "26-10-2023"]
 
     IST = pytz.timezone('Europe/Warsaw')
     time = [datetime.now(IST).hour,datetime.now(IST).minute,datetime.now(IST).second]
@@ -262,7 +263,7 @@ async def on_message(message):
     if ((remove and sender.id not in badGuys) or (not containsBadWords and sender.id in badGuys and len(msg) and not is_url(msg))) and sender.id != bot.user.id:
         print(len(msg))
         if sender.id in badGuys:
-            toRemove = await message.channel.send("<@"+str(sender.id)+"> na mocy cyrografu zawartego dnia 15-10-2023 każda twa wiadomość nie zawierająca słowa z listy wulgaryzmów serwerowych została usuinięta!")
+            toRemove = await message.channel.send("<@"+str(sender.id)+"> na mocy cyrografu zawartego dnia "+badGuysDate[badGuys.index(sender.id)]+" każda twa wiadomość nie zawierająca słowa z listy wulgaryzmów serwerowych została usuinięta!")
         else:
             toRemove = await message.channel.send("<@"+str(sender.id)+">!!! Zgodnie z paragrafem §1.8 na kanale <#935612476156936272> o godzinie "+timeNow+" czasu polskiego panuje bezwzględny zakaz używania przekleństw (z wyjątkami opisanymi w tym podpunkcie oraz za wyjątkiem boskiego Pabito). W związku z powyższym wiadomość została usunięta. Pilnuj się!")
         await message.delete()
