@@ -77,12 +77,10 @@ async def afterPlayAsync():
     global queue
     global nowPlaying
     if (len(queue)):
-        print("Następny song")
         if ((nowPlaying not in queue) and os.path.isfile("yt/"+nowPlaying+".mp3")):
             os.remove("yt/"+nowPlaying)
         playSong(queue.pop(0))
     else:
-        print("Uciekam")
         nowPlaying = ""
         queue = []
         if (len(bot.voice_clients)):
@@ -93,7 +91,6 @@ def afterPlay(err):
 
 def playSong(vid_id):
     global nowPlaying
-    print("playSong()")
     nowPlaying = vid_id
     source = FFmpegPCMAudio("yt/"+vid_id+".mp3")
     bot.voice_clients[0].play(source, after=afterPlay)
@@ -287,7 +284,6 @@ async def on_message(message):
 
     if ((remove and len(cyrograf.search(search.id == sender.id)) == 0) or (not containsBadWords and len(cyrograf.search(search.id == sender.id)) > 0 and len(msg) and not is_url(msg))) and sender.id != bot.user.id:
         if len(cyrograf.search(search.id == sender.id)) > 0:
-            print(cyrograf.search(search.id == sender.id)[0])
             toRemove = await message.channel.send("<@"+str(sender.id)+"> na mocy cyrografu zawartego dnia "+cyrograf.search(search.id == sender.id)[0]['time']+" każda twa wiadomość nie zawierająca słowa z listy wulgaryzmów serwerowych została usuinięta!")
         else:
             toRemove = await message.channel.send("<@"+str(sender.id)+">!!! Zgodnie z paragrafem §1.8 na kanale <#935612476156936272> o godzinie "+timeNow+" czasu polskiego panuje bezwzględny zakaz używania przekleństw (z wyjątkami opisanymi w tym podpunkcie oraz za wyjątkiem boskiego Pabito). W związku z powyższym wiadomość została usunięta. Pilnuj się!")
