@@ -271,6 +271,9 @@ async def on_message(message):
 
     if (len(msg)>10 and msg[0:9] == "!cyrograf" and message.author.id == 386237687008591895):
         victim = msg[10:len(msg)]
+        if (len(cyrograf.search(search.id == int(victim))) > 0):
+            await message.channel.send(f"<@{victim}> już jest objęty cyrografem!")
+            return
         cyrograf.insert({'id': int(victim), 'time': str(datetime.now(IST).strftime("%d-%m-%Y"))})
         await tree.sync()
         await message.channel.send(f"Właśnie <@{victim}> został objęty cyrografem!")
