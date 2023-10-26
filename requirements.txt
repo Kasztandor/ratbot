@@ -4,3 +4,4 @@ pytube
 PyNaCl
 pillow
 pytz
+tinydb

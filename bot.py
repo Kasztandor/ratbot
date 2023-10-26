@@ -7,6 +7,7 @@ import pytube
 import math
 import asyncio
 import shutil
+import tinydb
 from discord.utils import get
 from math import floor
 from datetime import datetime
@@ -15,6 +16,16 @@ from PIL import Image
 from random import randrange
 from discord import FFmpegPCMAudio
 from urllib.parse import urlparse
+
+#tinydb
+def reloadDb():
+    global db
+    global search
+    global cyrograf
+    db = tinydb.TinyDB('db.json')
+    search = tinydb.Query()
+    cyrograf = db.table('cyrograf')
+reloadDb()
 
 #constants
 mee6 = 159985870458322944
@@ -43,7 +54,6 @@ birth = None
 
 async def birthday():
     while (True):
-        print("test")
         channel = bot.get_channel(1165004603897675796)
         #await channel.send("test")
         await asyncio.sleep(60)
@@ -229,6 +239,12 @@ async def self(interaction: discord.Interaction, argument:str):
 
 @bot.event
 async def on_message(message):
+    global db
+    global cyrograf
+    global search
+
+    reloadDb()
+
     guild = message.guild
     msg = message.content
     msgLowercase = msg.lower()
@@ -248,10 +264,16 @@ async def on_message(message):
     
     containsBadWords = False
     remove = False
-    
+
     if (msg == "!sync" and message.author.id == 386237687008591895):
         await tree.sync()
         await message.channel.send("Zsynchronizowano drzewo!")
+
+    if (len(msg)>10 and msg[0:9] == "!cyrograf" and message.author.id == 386237687008591895):
+        victim = msg[10:len(msg)]
+        cyrograf.insert({'id': int(victim), 'time': str(datetime.now(IST).strftime("%d-%m-%Y"))})
+        await tree.sync()
+        await message.channel.send(f"Właśnie <@{victim}> został objęty cyrografem!")
 
     for i in bannedWords:
         if msgLowercaseNoPolish.find(i) != -1:
@@ -260,10 +282,10 @@ async def on_message(message):
     if (time[0] < 20 and time[0] >= 5 and containsBadWords):
         remove = True
 
-    if ((remove and sender.id not in badGuys) or (not containsBadWords and sender.id in badGuys and len(msg) and not is_url(msg))) and sender.id != bot.user.id:
-        print(len(msg))
-        if sender.id in badGuys:
-            toRemove = await message.channel.send("<@"+str(sender.id)+"> na mocy cyrografu zawartego dnia "+badGuysDate[badGuys.index(sender.id)]+" każda twa wiadomość nie zawierająca słowa z listy wulgaryzmów serwerowych została usuinięta!")
+    if ((remove and len(cyrograf.search(search.id == sender.id)) == 0) or (not containsBadWords and len(cyrograf.search(search.id == sender.id)) > 0 and len(msg) and not is_url(msg))) and sender.id != bot.user.id:
+        if len(cyrograf.search(search.id == sender.id)) > 0:
+            print(cyrograf.search(search.id == sender.id)[0])
+            toRemove = await message.channel.send("<@"+str(sender.id)+"> na mocy cyrografu zawartego dnia "+cyrograf.search(search.id == sender.id)[0]['time']+" każda twa wiadomość nie zawierająca słowa z listy wulgaryzmów serwerowych została usuinięta!")
         else:
             toRemove = await message.channel.send("<@"+str(sender.id)+">!!! Zgodnie z paragrafem §1.8 na kanale <#935612476156936272> o godzinie "+timeNow+" czasu polskiego panuje bezwzględny zakaz używania przekleństw (z wyjątkami opisanymi w tym podpunkcie oraz za wyjątkiem boskiego Pabito). W związku z powyższym wiadomość została usunięta. Pilnuj się!")
         await message.delete()
