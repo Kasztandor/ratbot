@@ -17,19 +17,33 @@ from random import randrange
 from discord import FFmpegPCMAudio
 from urllib.parse import urlparse
 
-#tinydb
-def reloadDb():
-    global db
-    global search
-    global cyrograf
-    db = tinydb.TinyDB('db.json')
-    search = tinydb.Query()
-    cyrograf = db.table('cyrograf')
-reloadDb()
+class abot(discord.Client):
+    global guild
+    def __init__(self):
+        super().__init__(intents=discord.Intents.all())
+        self.sycned = False
+    async def on_ready(self):
+        guild = self.get_guild(env.GUILD_ID)
+        birth = asyncio.create_task(birthday(guild))
+        print("Bot is online")
+
+bot = abot()
+tree = discord.app_commands.CommandTree(bot)
 
 #constants
 mee6 = 159985870458322944
-guild = discord.Object(id=env.GUILD_ID)
+
+#tinydb
+def reloadDb():
+    global db, search
+    db = tinydb.TinyDB('db.json')
+    search = tinydb.Query()
+reloadDb()
+
+#tinydb init tables if not exist
+db.table('bannedWords')
+db.table('cyrograf')
+db.table('variables')
 
 #variables
 lastNumber = 0
@@ -38,6 +52,16 @@ lastNumber = 0
 queue = []
 nowPlaying = ""
 
+#bithday
+def lastBirthMessageToday():
+    global db, search
+    if len(db.table('variables').search(search.lastBirthMessage == datetime.now().strftime("%d-%m-%Y"))):
+        lastBirthMessageToday = True
+    else:
+        lastBirthMessageToday = False
+    db.table('variables').upsert({'lastBirthMessage': datetime.now().strftime("%d-%m-%Y")}, search.lastBirthMessage == datetime.now().strftime("%d-%m-%Y"))
+    return lastBirthMessageToday
+
 def is_url(url):
     try:
         result = urlparse(url)
@@ -45,33 +69,27 @@ def is_url(url):
     except ValueError:
         return False
 
-def ball8():
-    x=["Mój wywiad donosi: NIE","Wygląda dobrze","Kto wie?","Zapomnij o tym","Tak - w swoim czasie","Prawie jak tak","Nie teraz","YES, YES, YES","To musi poczekać","Mam pewne wątpliwości","Możesz na to liczyć","Zbyt wcześnie aby powiedzieć","Daj spokój","Absolutnie","Chyba żatrujesz?","Na pewno nie","Zrób to","Prawdopodobnie","Dla mnie rewelacja","Na pewno tak"]
-    return "Magiczna kula mówi: "+x[randrange(0,len(x))]
-
-#lastbirthday
-birth = None
-
-async def birthday():
+async def birthday(guild):
     while (True):
-        channel = bot.get_channel(1165004603897675796)
-        #await channel.send("test")
-        await asyncio.sleep(60)
-
-class abot(discord.Client):
-    def __init__(self):
-        super().__init__(intents=discord.Intents.all())
-        self.sycned = False
-    async def on_ready(self):
-        await self.wait_until_ready()
-        if not self.sycned:
-            await tree.sync(guild=guild)
-            self.synced = True
-        birth = asyncio.create_task(birthday())
-        print("Bot is online")
-
-bot = abot()
-tree = discord.app_commands.CommandTree(bot)
+        for i in guild.members:
+            if not i.bot:
+                if i.joined_at.strftime("%d-%m")==datetime.now().strftime("%d-%m") and i.joined_at.strftime("%Y")!=datetime.now().strftime("%Y"):
+                    await i.add_roles(discord.utils.get(guild.roles,id=env.BIRTHDAY_ROLE))
+                else:
+                    await i.remove_roles(discord.utils.get(guild.roles,id=env.BIRTHDAY_ROLE))
+        channel = bot.get_channel(env.BIRTHDAY_CHANNEL)
+        if (not lastBirthMessageToday()):
+            birthdayPeople = []
+            for i in guild.members:
+                if not i.bot:
+                    if i.joined_at.strftime("%d-%m")==datetime.now().strftime("%d-%m"):
+                        birthdayPeople.append("<@"+str(i.id)+">")
+            if (len(birthdayPeople)):
+                await channel.send("Dzisiaj urodziny obchodzą:")
+                await channel.send(", ".join(birthdayPeople))
+            else:
+                await channel.send("Dzisiaj nikt nie ma urodzin :(")
+        await asyncio.sleep(600)
 
 async def afterPlayAsync():
     global queue
@@ -95,7 +113,7 @@ def playSong(vid_id):
     source = FFmpegPCMAudio("yt/"+vid_id+".mp3")
     bot.voice_clients[0].play(source, after=afterPlay)
 
-@tree.command(name="play", description="Dodaj utwór do kolejki odtwarzania", guild=guild)
+@tree.command(name="play", description="Dodaj utwór do kolejki odtwarzania")
 async def self(interaction: discord.Interaction, fraza:str):
     global queue
     channel = interaction.user.voice
@@ -123,12 +141,7 @@ async def self(interaction: discord.Interaction, fraza:str):
             except:
                 await interaction.edit_original_response(content="Głupi youtube nie pozwala mi pobrać tego utworu.")
 
-@tree.command(name="date")
-async def self(ctx, member: discord.Member):
-    joined_at = member.joined_at.strftime("%b %d, %Y, %T")
-    await ctx.send(f" {member.mention} Joined at {joined_at}")
-
-@tree.command(name="pause", description="Pauzuje i wznawia odtwarzanie muzyki", guild=guild)
+@tree.command(name="pause", description="Pauzuje i wznawia odtwarzanie muzyki")
 async def self(interaction: discord.Interaction):
     if (len(bot.voice_clients) and (bot.voice_clients[0].is_playing() or bot.voice_clients[0].is_paused)):
         if (bot.voice_clients[0].is_paused()):
@@ -140,7 +153,7 @@ async def self(interaction: discord.Interaction):
     else:
         await interaction.response.send_message("Bot nic nie gra przystojniaczku. Nie jestem w stanie zarzucić pauzy JOŁ.")
 
-@tree.command(name="queue", description="Sprawdź kolejkę odtwarzania", guild=guild)
+@tree.command(name="queue", description="Sprawdź kolejkę odtwarzania")
 async def self(interaction: discord.Interaction, page:int=1):
     global queue
     if (len(queue) == 0):
@@ -164,7 +177,7 @@ async def self(interaction: discord.Interaction, page:int=1):
         await interaction.response.send_message(prefix+middle+sufix)
 
 """
-@tree.command(name="skip", description="Pomija aktualnie odtwarzany utwór (lub więcej)", guild=guild)
+@tree.command(name="skip", description="Pomija aktualnie odtwarzany utwór (lub więcej)")
 async def self(interaction: discord.Interaction, count:int=1):
     global queue
     if (count > 0):
@@ -182,7 +195,7 @@ async def self(interaction: discord.Interaction, count:int=1):
         await interaction.response.send_message("Nie można pominąć mniej niż 1 utworów.")
 """
 
-@tree.command(name="stop", description="Zatrzymuje odtwarzacz", guild=guild)
+@tree.command(name="stop", description="Zatrzymuje odtwarzacz")
 async def self(interaction: discord.Interaction):
     global queue
     queue = []
@@ -196,19 +209,11 @@ async def self(interaction: discord.Interaction):
         bot.voice_clients[0].disconnect()
     await interaction.response.send_message("Zatrzymano odtwarzacz.")
 
-@tree.command(name="ping", description="Bot odpowie ci pong", guild=guild)
-async def self(interaction: discord.Interaction):
-    await interaction.response.send_message("Pong!")
-
-@tree.command(name="author", description="Bot poda ci najważniejsze informacje o autorze", guild=guild)
+@tree.command(name="author", description="Bot poda ci najważniejsze informacje o autorze")
 async def self(interaction: discord.Interaction):
     await interaction.response.send_message("Autorem bocika jest <@386237687008591895>.\n\nGithub: https://github.com/kasztandor\nFacebook: https://www.facebook.com/kasztandor\nReddit: https://www.reddit.com/user/Kasztandor\nInstagram: https://www.instagram.com/kasztandor_art\nInstagram: https://www.instagram.com/kasztandor_photos", suppress_embeds=True)
 
-@tree.command(name="macja", description="Bot wylosuje hasło z magicznej kuli nr 8", guild=guild)
-async def self(interaction: discord.Interaction):
-    await interaction.response.send_message(ball8())
-
-@tree.command(name="generate", description="Bot wygeneruje wybrany przez ciebie napis", guild=guild)
+@tree.command(name="generate", description="Bot wygeneruje wybrany przez ciebie napis")
 async def self(interaction: discord.Interaction, argument:str):
     process = argument.lower().replace("ą","a").replace("ć","c").replace("ę","e").replace("ł","l").replace("ń","n").replace("ó","o").replace("ś","s").replace("ż","z").replace("ź","z")
     images = []
@@ -227,22 +232,12 @@ async def self(interaction: discord.Interaction, argument:str):
         width += i.width
     newImage.save("napis.png")
     await interaction.response.send_message(file=discord.File('napis.png'))
-    #os.remove("napis.png")
-
-#@tree.command(name="sync", description="[admin] Synchronizacja drzewa", guild=guild)
-#async def self(interaction: discord.Interaction):
-#    await tree.sync()
-#    await interaction.response.send_message("Zsynchronizowano drzewo!")
+    os.remove("napis.png")
 
 @bot.event
 async def on_message(message):
-    global db
-    global cyrograf
-    global search
+    global db, search, guild, mee6
 
-    reloadDb()
-
-    guild = message.guild
     msg = message.content
     msgLowercase = msg.lower()
     msgLowercaseNoPolish = msgLowercase.replace("ą","a").replace("ć","c").replace("ę","e").replace("ł","l").replace("ń","n").replace("ó","o").replace("ś","s").replace("ż","z").replace("ź","z")
@@ -253,18 +248,32 @@ async def on_message(message):
     IST = pytz.timezone('Europe/Warsaw')
     time = [datetime.now(IST).hour,datetime.now(IST).minute,datetime.now(IST).second]
     timeString = [str(time[0]),str(time[1]),str(time[2])]
+
     for i in range(len(timeString)):
         if len(timeString[i])==1:
             timeString[i] = "0"+timeString[i]
     timeNow = timeString[0]+":"+timeString[1]+":"+timeString[2]
-    bannedWords = ['chuj','chuja','chujek','chuju','chujem','chujnia','chujowy','chujowa','chujowe','dojebac','dojebie','dojebal','dojebal','dojebala','dojebala','dojebalem','dojebalem','dojebalam','dojebalam','dojebie','dojebie','dopieprzac','dopieprzac','dopierdalac','dopierdalac','dopierdala','dopierdalal','dopierdalal','dopierdalala','dopierdalala','dopierdoli','dopierdolil','dopierdolil','dopierdole','dopierdole','dopierdoli','dopierdalajacy','dopierdalajacy','dopierdolic','dopierdolic','huj','hujek','hujnia','huja','huje','hujem','huju','jebac','jebac','jebal','jebal','jebie','jebia','jebia','jebak','jebaka','jebal','jebal','jebany','jebane','jebanka','jebanko','jebankiem','jebanymi','jebana','jebanym','jebanej','jebana','jebana','jebani','jebanych','jebanymi','jebcie','jebiacy','jebiacy','jebiaca','jebiaca','jebiacego','jebiacego','jebiacej','jebiacej','jebia','jebia','jebie','jebie','jebliwy','jebnac','jebnac','jebnac','jebnac','jebnal','jebnal','jebna','jebna','jebnela','jebnela','jebnie','jebnij','jebut','koorwa','korwa','kurestwo','kurew','kurewski','kurewska','kurewskiej','kurewska','kurewska','kurewsko','kurewstwo','kurwa','kurwaa','kurwami','kurwa','kurwe','kurwe','kurwie','kurwiska','kurwo','kurwy','kurwach','kurwami','kurewski','kurwiarz','kurwiacy','kurwica','kurwic','kurwic','kurwidolek','kurwik','kurwiki','kurwiszcze','kurwiszon','kurwiszona','kurwiszonem','kurwiszony','matkojebca','matkojebcy','matkojebca','matkojebca','matkojebcami','matkojebcach','nabarlozyc','najebac','najebac','najebal','najebal','najebala','najebala','najebane','najebany','najebana','najebana','najebie','najebia','najebia','naopierdalac','naopierdalac','naopierdalal','naopierdalal','naopierdalala','naopierdalala','naopierdalala','napierdalac','napierdalac','napierdalajacy','napierdalajacy','napierdolic','napierdolic','nawpierdalac','nawpierdalac','nawpierdalal','nawpierdalal','nawpierdalala','nawpierdalala','odpieprzac','odpieprzac','odpierdalac','odpierdalac','odpierdol','odpierdolil','odpierdolil','odpierdolila','odpierdolila','odpierdoli','odpierdalajacy','odpierdalajacy','odpierdalajaca','odpierdalajaca','odpierdolic','odpierdolic','odpierdoli','odpierdolil','opieprzajacy','opierdalac','opierdalac','opierdala','opierdalajacy','opierdalajacy','opierdol','opierdolic','opierdolic','opierdoli','opierdola','opierdola','piczka','pieprzniety','pieprzniety','pieprzony','pierdel','pierdlu','pierdolacy','pierdolacy','pierdolaca','pierdolaca','pierdol','pierdole','pierdolenie','pierdoleniem','pierdoleniu','pierdole','pierdolec','pierdola','pierdola','pierdolic','pierdolicie','pierdolic','pierdolil','pierdolil','pierdolila','pierdolila','pierdoli','pierdolniety','pierdolniety','pierdolisz','pierdolnac','pierdolnac','pierdolnal','pierdolnal','pierdolnela','pierdolnela','pierdolnie','pierdolniety','pierdolnij','pierdolnik','pierdolona','pierdolone','pierdolony','pierdolki','podpierdalac','podpierdalac','podpierdala','podpierdalajacy','podpierdalajacy','podpierdolic','podpierdolic','podpierdoli','pojeb','pojeba','pojebami','pojebani','pojebanego','pojebanemu','pojebani','pojebany','pojebanych','pojebanym','pojebanymi','pojebem','pojebac','pojebac','pojebalo','popierdala','popierdalac','popierdalac','popierdolic','popierdolic','popierdoli','popierdolonego','popierdolonemu','popierdolonym','popierdolone','popierdoleni','popierdolony','porozpierdalac','porozpierdala','porozpierdalac','przejebac','przejebane','przejebac','przyjebali','przepierdalac','przepierdalac','przepierdala','przepierdalajacy','przepierdalajacy','przepierdalajaca','przepierdalajaca','przepierdolic','przepierdolic','przyjebac','przyjebac','przyjebie','przyjebala','przyjebala','przyjebal','przyjebal','przypieprzac','przypieprzac','przypieprzajacy','przypieprzajacy','przypieprzajaca','przypieprzajaca','przypierdalac','przypierdalac','przypierdala','przypierdoli','przypierdalajacy','przypierdalajacy','przypierdolic','przypierdolic','qrwa','rozjebac','rozjebac','rozjebie','rozjebala','rozjebia','rozpierdalac','rozpierdalac','rozpierdala','rozpierdolic','rozpierdolic','rozpierdole','rozpierdoli','rozpierducha','skurwic','skurwiel','skurwiela','skurwielem','skurwielu','skurwysyn','skurwysynow','skurwysynow','skurwysyna','skurwysynem','skurwysynu','skurwysyny','skurwysynski','skurwysynski','skurwysynstwo','skurwysynstwo','spierdalac','spierdalac','spierdala','spierdalal','spierdalala','spierdalal','spierdalalcie','spierdalala','spierdalajacy','spierdalajacy','spierdolic','spierdolic','spierdoli','spierdolila','spierdolilo','spierdola','spierdola','srac','srac','srajacy','srajacy','srajac','srajac','sraj','sukinsyn','sukinsyny','sukinsynom','sukinsynowi','sukinsynow','sukinsynow','smierdziel','udupic','ujebac','ujebac','ujebal','ujebal','ujebana','ujebany','ujebie','ujebala','ujebala','upierdalac','upierdalac','upierdala','upierdoli','upierdolic','upierdolic','upierdoli','upierdola','upierdola','upierdoleni','wjebac','wjebac','wjebie','wjebia','wjebia','wjebiemy','wjebiecie','wkurwiac','wkurwiac','wkurwi','wkurwia','wkurwial','wkurwial','wkurwiajacy','wkurwiajacy','wkurwiajaca','wkurwiajaca','wkurwic','wkurwic','wkurwi','wkurwiacie','wkurwiaja','wkurwiali','wkurwia','wkurwia','wkurwimy','wkurwicie','wkurwiacie','wkurwic','wkurwic','wkurwia','wpierdalac','wpierdalac','wpierdalajacy','wpierdalajacy','wpierdol','wpierdolic','wpierdolic','wpizdu','wyjebac','wyjebac','wyjebali','wyjebal','wyjebac','wyjebala','wyjebaly','wyjebie','wyjebia','wyjebia','wyjebiesz','wyjebie','wyjebiecie','wyjebiemy','wypieprzac','wypieprzac','wypieprza','wypieprzal','wypieprzal','wypieprzala','wypieprzala','wypieprzy','wypieprzyla','wypieprzyla','wypieprzyl','wypieprzyl','wypierdal','wypierdalac','wypierdalac','wypierdala','wypierdalaj','wypierdalal','wypierdalal','wypierdalala','wypierdalala','wypierdalac','wypierdolic','wypierdolic','wypierdoli','wypierdolimy','wypierdolicie','wypierdola','wypierdola','wypierdolili','wypierdolil','wypierdolil','wypierdolila','wypierdolila','zajebac','zajebac','zajebie','zajebia','zajebia','zajebial','zajebial','zajebala','zajebiala','zajebali','zajebana','zajebani','zajebane','zajebany','zajebanych','zajebanym','zajebanymi', 'zapieprzyc','zapieprzyc','zapieprzy','zapieprzyl','zapieprzyl','zapieprzyla','zapieprzyla','zapieprza','zapieprza','zapieprzy','zapieprzymy','zapieprzycie','zapieprzysz','zapierdala','zapierdalac','zapierdalac','zapierdalaja','zapierdalal','zapierdalaj','zapierdalajcie','zapierdalala','zapierdalala','zapierdalali','zapierdalajacy','zapierdalajacy','zapierdolic','zapierdolic','zapierdoli','zapierdolil','zapierdolil','zapierdolila','zapierdolila','zapierdola','zapierdola','zapierniczac','zapierniczajacy','zasrac','zasranym','zasrywac','zasrywajacy','zesrywac','zesrywajacy','zjebac','zjebac','zjebal','zjebal','zjebala','zjebala','zjebana','zjebia','zjebali','zjeby']
-    
+    bannedWords = []
+    for i in db.table("bannedWords").all():
+        bannedWords.append(i['word'])
     containsBadWords = False
     remove = False
+
+    if (msg == "!help"):
+        await message.channel.send("""
+            **!help** - wyświetla tą wiadomość
+            **!sync** - synchronizuje drzewo komend (Kasztandor only)
+            **!dbreload** - synchronizuje bazę danych (Kasztandor only)
+            **!cyrograf** discord_id - objęcie cyrografem (Kasztandor only)
+        """)
 
     if (msg == "!sync" and message.author.id == 386237687008591895):
         await tree.sync()
         await message.channel.send("Zsynchronizowano drzewo!")
+
+    if (msg == "!dbreload" and message.author.id == 386237687008591895):
+        reloadDb()
+        await message.channel.send("Zsynchronizowano bazę danych!")
 
     if (len(msg)>10 and msg[0:9] == "!cyrograf" and message.author.id == 386237687008591895):
         victim = msg[10:len(msg)]
@@ -276,15 +285,15 @@ async def on_message(message):
         await message.channel.send(f"Właśnie <@{victim}> został objęty cyrografem!")
 
     for i in bannedWords:
-        if msgLowercaseNoPolish.find(i) != -1:
+        if msgLowercaseNoPolish.find(i)!=-1:
             containsBadWords = True
 
     if (time[0] < 20 and time[0] >= 5 and containsBadWords):
         remove = True
 
-    if ((remove and len(cyrograf.search(search.id == sender.id)) == 0) or (not containsBadWords and len(cyrograf.search(search.id == sender.id)) > 0 and len(msg) and not is_url(msg))) and sender.id != bot.user.id:
-        if len(cyrograf.search(search.id == sender.id)) > 0:
-            toRemove = await message.channel.send("<@"+str(sender.id)+"> na mocy cyrografu zawartego dnia "+cyrograf.search(search.id == sender.id)[0]['time']+" każda twa wiadomość nie zawierająca słowa z listy wulgaryzmów serwerowych została usuinięta!")
+    if ((remove and len(db.table("cyrograf").search(search.id == sender.id)) == 0) or (not containsBadWords and len(db.table("cyrograf").search(search.id == sender.id)) > 0 and len(msg) and not is_url(msg))) and sender.id != bot.user.id:
+        if len(db.table("cyrograf").search(search.id == sender.id)) > 0:
+            toRemove = await message.channel.send("<@"+str(sender.id)+"> na mocy cyrografu zawartego dnia "+db.table("cyrograf").search(search.id == sender.id)[0]['time']+" każda twa wiadomość nie zawierająca słowa z listy wulgaryzmów serwerowych została usuinięta!")
         else:
             toRemove = await message.channel.send("<@"+str(sender.id)+">!!! Zgodnie z paragrafem §1.8 na kanale <#935612476156936272> o godzinie "+timeNow+" czasu polskiego panuje bezwzględny zakaz używania przekleństw (z wyjątkami opisanymi w tym podpunkcie oraz za wyjątkiem boskiego Pabito). W związku z powyższym wiadomość została usunięta. Pilnuj się!")
         await message.delete()

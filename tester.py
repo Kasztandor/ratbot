@@ -1,12 +1,13 @@
-import asyncio
+import tinydb
 
-async def scheculed():
-    await asyncio.sleep(1)
-    print("World")
+db = tinydb.TinyDB('db.json')
+table = db.table('bannedWords')
 
-async def main():
-    task = asyncio.create_task(scheculed())
-    print("Hello")
-    await asyncio.sleep(5)
+search = tinydb.Query()
 
-asyncio.run(main())
+bannedWords = []
+
+for i in table.all():
+    bannedWords.append(i['word'])
+
+print(bannedWords)

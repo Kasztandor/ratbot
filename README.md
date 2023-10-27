@@ -15,4 +15,8 @@ LASTLETTER_CHANNEL = 0
 GUILD_ID = 0
 #ID/IDS of role/roles allowing bot controling
 BOT_CONTROLLER = 0
+#Birthday role ID
+BIRTHDAY_ROLE = 0
+#Birthday channel ID
+BIRTHDAY_CHANNEL = 0
 ```
