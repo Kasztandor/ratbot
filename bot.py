@@ -75,7 +75,7 @@ async def birthday(guild):
             if not i.bot:
                 if i.joined_at.strftime("%d-%m")==datetime.now().strftime("%d-%m") and i.joined_at.strftime("%Y")!=datetime.now().strftime("%Y"):
                     await i.add_roles(discord.utils.get(guild.roles,id=env.BIRTHDAY_ROLE))
-                else:
+                elif env.BIRTHDAY_ROLE in [role.id for role in i.roles]:
                     await i.remove_roles(discord.utils.get(guild.roles,id=env.BIRTHDAY_ROLE))
         channel = bot.get_channel(env.BIRTHDAY_CHANNEL)
         if (not lastBirthMessageToday()):
