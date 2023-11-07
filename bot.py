@@ -239,8 +239,9 @@ async def self(interaction: discord.Interaction, argument:str):
 
 @bot.event
 async def on_message(message):
-    global db, search, guild, mee6, lastDeleted
+    global db, search, mee6, lastDeleted
 
+    guild = message.guild
     msg = message.content
     msgLowercase = msg.lower()
     msgLowercaseNoPolish = msgLowercase.replace("ą","a").replace("ć","c").replace("ę","e").replace("ł","l").replace("ń","n").replace("ó","o").replace("ś","s").replace("ż","z").replace("ź","z")
