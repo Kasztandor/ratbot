@@ -246,24 +246,6 @@ async def on_message(message):
     msgLowercase = msg.lower()
     msgLowercaseNoPolish = msgLowercase.replace("ą","a").replace("ć","c").replace("ę","e").replace("ł","l").replace("ń","n").replace("ó","o").replace("ś","s").replace("ż","z").replace("ź","z")
     sender = message.author
-    badGuys = [421932366802714625, 771078648140791808, 883308544600973363]
-    badGuysDate = ["15-10-2023", "15-10-2023", "26-10-2023"]
-
-    IST = pytz.timezone('Europe/Warsaw')
-    time = [datetime.now(IST).hour,datetime.now(IST).minute,datetime.now(IST).second]
-    timeString = [str(time[0]),str(time[1]),str(time[2])]
-
-    bannedBaypass = False
-
-    for i in range(len(timeString)):
-        if len(timeString[i])==1:
-            timeString[i] = "0"+timeString[i]
-    timeNow = timeString[0]+":"+timeString[1]+":"+timeString[2]
-    bannedWords = []
-    for i in db.table("bannedWords").all():
-        bannedWords.append(i['word'])
-    containsBadWords = False
-    remove = False
 
     if (msg == "!rathelp"):
         await message.channel.send("""
@@ -289,60 +271,7 @@ Lista zawiera komendy dla administracji serwera:
         await message.channel.send("Zsynchronizowano bazę danych!")
         bannedBaypass = True
 
-    if (len(msg)>11 and msg[0:10] == "!cyrograf " and message.author.id == 386237687008591895):
-        victim = msg[10:len(msg)]
-        if (len(db.table("cyrograf").search(search.id == int(victim))) > 0):
-            await message.channel.send(f"<@{victim}> już jest objęty cyrografem!")
-            return
-        db.table("cyrograf").insert({'id': int(victim), 'time': str(datetime.now(IST).strftime("%d-%m-%Y"))})
-        bannedBaypass = True
-        await tree.sync()
-        await message.channel.send(f"Właśnie <@{victim}> został objęty cyrografem!")
-
-    if (len(msg)>12 and msg[0:11] == "!bannedadd " and env.BOT_CONTROLLER in [role.id for role in message.author.roles]):
-        word = msg[11:len(msg)]
-        if (len(bannedWords) == 0):
-            bannedWords.append(word)
-        elif (word not in bannedWords):
-            bannedWords.append(word)
-        db.table("bannedWords").insert({'word': word})
-        bannedBaypass = True
-        await message.channel.send(f"Dodano słowo {word} do listy słów banowanych!")
-
-    if (len(msg)>15 and msg[0:14] == "!bannedremove " and env.BOT_CONTROLLER in [role.id for role in message.author.roles]):
-        word = msg[14:len(msg)]
-        if (word in bannedWords):
-            bannedWords.remove(word)
-            db.table("bannedWords").remove(search.word == word)
-            bannedBaypass = True
-            await message.channel.send(f"Usunięto słowo {word} z listy słów banowanych!")
-        else:
-            await message.channel.send(f"Słowo {word} nie znajduje się na liście słów banowanych!")
-        bannedBaypass = True
-    
-    if (msg == "!displaylast" and env.BOT_CONTROLLER in [role.id for role in message.author.roles]):
-        await message.channel.send("Ostatnio usunięta wiadomość zawierała słowa: "+", ".join(lastDeleted))
-        bannedBaypass = True
-
-    for i in bannedWords:
-        if msgLowercaseNoPolish.find(i)!=-1:
-            containsBadWords = True
-
-    if (time[0] < 20 and time[0] >= 5 and containsBadWords):
-        remove = True
-
-    if (not bannedBaypass and (remove and len(db.table("cyrograf").search(search.id == sender.id)) == 0) or (not containsBadWords and len(db.table("cyrograf").search(search.id == sender.id)) > 0 and len(msg) and not is_url(msg))) and sender.id != bot.user.id:
-        if len(db.table("cyrograf").search(search.id == sender.id)) > 0:
-            toRemove = await message.channel.send("<@"+str(sender.id)+"> na mocy cyrografu zawartego dnia "+db.table("cyrograf").search(search.id == sender.id)[0]['time']+" każda twa wiadomość nie zawierająca słowa z listy wulgaryzmów serwerowych została usuinięta!")
-        else:
-            toRemove = await message.channel.send("<@"+str(sender.id)+">!!! Zgodnie z paragrafem §1.8 na kanale <#935612476156936272> o godzinie "+timeNow+" czasu polskiego panuje bezwzględny zakaz używania przekleństw (z wyjątkami opisanymi w tym podpunkcie). W związku z powyższym wiadomość została usunięta. Pilnuj się!")
-            lastDeleted = []
-            for i in bannedWords:
-                if msgLowercaseNoPolish.find(i)!=-1:
-                    lastDeleted.append(i)
-        await message.delete()
-        await toRemove.delete(delay=15)
-    elif message.channel.id == env.COUNTING_CHANNEL and message.author.id != bot.user.id:
+    if message.channel.id == env.COUNTING_CHANNEL and message.author.id != bot.user.id:
         try:
             int(msg)
         except:
@@ -356,7 +285,6 @@ Lista zawiera komendy dla administracji serwera:
             await message.add_reaction("\U0001F44E")
     elif len(message.mentions) > 0 and message.author.id == mee6:
         userID = msg[(msg.find("<@")+2):msg.find(">")]
-        #theUser = get(guild.members, id=userID)
         theUser = message.mentions[0]
         level = int(msg[(msg.find("level")+6):msg.find("!")])
         if level <= 100:
