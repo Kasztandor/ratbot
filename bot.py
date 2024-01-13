@@ -16,6 +16,7 @@ from PIL import Image
 from random import randrange
 from discord import FFmpegPCMAudio
 from urllib.parse import urlparse
+import mcrcon
 
 class abot(discord.Client):
     global guild
@@ -115,6 +116,25 @@ def playSong(vid_id):
     nowPlaying = vid_id
     source = FFmpegPCMAudio("yt/"+vid_id+".mp3")
     bot.voice_clients[0].play(source, after=afterPlay)
+
+@tree.command(name="connect-mc", description="Zweryfikuj i połącz swoje konto minecraft")
+async def self(interaction: discord.Interaction, kod:int):
+    global db, search
+    try:
+        if len(db.table('minecraft').search(search.discord_id == interaction.user.id)):
+            await interaction.response.send_message("Twoje konto jest już połączone z kontem minecraft!")
+            return
+        mcrc = mcrcon.MCRcon("192.168.21.37", "kupiePassata2137")
+        mcrc.connect()
+        resp = mcrc.command("tag @a[scores={authnumber="+str(kod)+"}] add justVerified")
+        if len(resp) == 19:
+            await interaction.response.send_message("Nie znaleziono gracza z podanym kodem weryfikacyjnym w grze! Sprawdź czy wpisałeś poprawny kod.")
+        else:
+            await interaction.response.send_message("Pomyślnie połączono konto: "+resp[28:])
+            db.table('minecraft').upsert({'discord_id': interaction.user.id, 'minecraft_nickname': resp[28:]}, search.discord_id == interaction.user.id)
+        mcrc.disconnect()
+    except:
+        await interaction.response.send_message("Nie udało się uzyskać połączenia z serwerem minecraft! Skontaktuj się z administracją.")
 
 @tree.command(name="play", description="Dodaj utwór do kolejki odtwarzania")
 async def self(interaction: discord.Interaction, fraza:str):
@@ -255,10 +275,6 @@ Lista zawiera komendy dla administracji serwera:
     **!sync** - synchronizuje drzewo komend
     **!dbreload** - synchronizuje bazę danych
     **!cyrograf** discord_id - objęcie cyrografem użytkownika
-  *Komendy "Ratbot controler only":*
-    **!bannedadd** słowo - dodawanie słowa do listy słów banowanych
-    **!bannedremove** słowo - usuwanie słowa do listy słów banowanych
-    **!displaylast** - wyświetla niepoprawne słowa w ostatniej usuniętej wiadomości
         """)
 
     if (msg == "!sync" and message.author.id == 386237687008591895):

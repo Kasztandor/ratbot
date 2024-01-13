@@ -19,4 +19,8 @@ BOT_CONTROLLER = 0
 BIRTHDAY_ROLE = 0
 #Birthday channel ID
 BIRTHDAY_CHANNEL = 0
+#MC Rcon ip
+RCON_IP = "ip"
+#MC Rcon password
+RCON_PASSWORD = "password"
 ```
