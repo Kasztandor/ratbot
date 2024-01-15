@@ -26,6 +26,7 @@ class abot(discord.Client):
     async def on_ready(self):
         guild = self.get_guild(env.GUILD_ID)
         birth = asyncio.create_task(birthday(guild))
+        mcServer = asyncio.create_task(minecraftServer())
         print("Bot is online")
 
 bot = abot()
@@ -116,6 +117,23 @@ def playSong(vid_id):
     nowPlaying = vid_id
     source = FFmpegPCMAudio("yt/"+vid_id+".mp3")
     bot.voice_clients[0].play(source, after=afterPlay)
+
+async def minecraftServer():
+    while True:
+        channel = bot.get_channel(env.MINECRAFT_STATUS_CHANNEL)
+        try:
+            server = JavaServer("kasztandor.pl", 25565)
+            messageContent = "**Status serwera:** *online*\n**Ilość graczy:** *"+str(server.status().players.online)+"*"
+            if len(server.query().players.names):
+                messageContent += "\n**Gracze online:** *"+", ".join(server.query().players.names)+"*"
+        except:
+            messageContent = "**Status serwera:** *offline*"
+        messages = [message async for message in channel.history(limit=1)]
+        if len(messages) == 0 or messages[0].author.id != bot.user.id:
+            await channel.send(messageContent)
+        else:
+            await messages[0].edit(content=messageContent)
+        await asyncio.sleep(30)
 
 @tree.command(name="connect-mc", description="Zweryfikuj i połącz swoje konto minecraft")
 async def self(interaction: discord.Interaction, kod:int):
