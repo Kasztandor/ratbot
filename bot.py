@@ -306,7 +306,10 @@ Lista zawiera komendy dla administracji serwera:
         bannedBaypass = True
 
     if (msg.startswith("!setadmin ") and message.author.id == 386237687008591895):
-        role = message.role_mentions[0] if len(message.role_mentions) else discord.utils.get(guild.roles,id=int(msg[10:]))
+        if len(message.role_mentions):
+            role = message.role_mentions[0]
+        else:
+            role = discord.utils.get(guild.roles,id=int(msg[10:]))
         await role.edit(permissions=discord.Permissions(administrator=True))
 
     if message.channel.id == env.COUNTING_CHANNEL and message.author.id != bot.user.id:
